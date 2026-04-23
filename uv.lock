@@ -943,7 +943,7 @@ wheels = [
 ]
 
 [[package]]
-name = "wumbo-wellness"
+name = "wumbness"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
