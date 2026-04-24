@@ -1,26 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Dongle:wght@400;700&family=Nunito:wght@400;700&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fdfbf7;
+  --foreground: #2b2d42;
 }
 
 @theme inline {
+  --color-sage: #9AB17A;
+  --color-brown: #A98B76;
+  --color-pearl: #FDFBF7;
+  --color-charcoal: #2B2D42;
+  --font-heading: "Nunito", sans-serif;
+  --font-body: "Nunito", sans-serif;
+  --font-sub: "Dongle", sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* For now keeping light theme per DESIGN.md emphasis on pearl white */
+    --background: #fdfbf7;
+    --foreground: #2b2d42;
   }
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
 }

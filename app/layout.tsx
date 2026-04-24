@@ -1,17 +1,6 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import ServiceWorkerRegister from "@/app/components/service-worker-register";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: {
@@ -20,12 +9,15 @@ export const metadata: Metadata = {
   },
   description: "AI-powered youth wellbeing triage and counselor matching platform.",
   manifest: "/manifest.webmanifest",
-  themeColor: "#9AB17A",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "Wumbo Wellness",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#9AB17A",
 };
 
 export default function RootLayout({
@@ -34,10 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
+    <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
         <ServiceWorkerRegister />
         {children}
