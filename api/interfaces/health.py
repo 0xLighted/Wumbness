@@ -11,7 +11,7 @@ router = APIRouter(tags=["health"],)
 def health(response: Response) -> dict[str, object]:
 	required_env = [
 		"NEXT_PUBLIC_SUPABASE_URL",
-		"NEXT_PUBLIC_SUPABASE_ANON_KEY",
+		"NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
 	]
 	missing_env = [key for key in required_env if not os.getenv(key)]
 	ok = len(missing_env) == 0
