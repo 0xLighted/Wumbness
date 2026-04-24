@@ -34,6 +34,16 @@ export default function CounselorForm() {
   return (
     <div className="flex flex-col gap-4">
       <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
+        {!isLogin && (
+          <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+            <input
+              type="text"
+              placeholder="Full Name"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage/50 focus:border-sage transition-all"
+              required
+            />
+          </div>
+        )}
         <div>
           <input
             type="email"
