@@ -1,72 +1,61 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
-import ChatMessage from "./ChatMessage";
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import ChatInput from "./ChatInput";
 import MatchingScreen from "./MatchingScreen";
 
-type Message = {
+const AI_QUESTIONS = [
+  "Hello! I\u0027m Wumbo, and I\u0027m here to help find the perfect counselor for you. What brings you here today?",
+  "I hear you. That sounds really tough. Can you tell me a bit more about how this is affecting your daily life?",
+  "Thank you for sharing that with me. Have you been experiencing these feelings for a long time?",
+];
+
+type UserMessage = {
   id: string;
-  role: "ai" | "user";
   content: string;
 };
 
 export default function ChatLayout() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "init",
-      role: "ai",
-      content: "Hello! Wumbo here to help you find the absolute best counselor for your needs. We just need to go through a few quick questions to understand how you&apos;re feeling right now. What brings you here today?",
-    },
-  ]);
+  const [currentQuestion, setCurrentQuestion] = useState(AI_QUESTIONS[0]);
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [userMessages, setUserMessages] = useState<UserMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isMatching, setIsMatching] = useState(false);
-  const [questionCount, setQuestionCount] = useState(0);
+  // Key to force re-mount of the dialogue bubble for animation
+  const [bubbleKey, setBubbleKey] = useState(0);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Auto-scroll to bottom of chat
+  // Subtle idle bounce on mascot
+  const [mascotBounce, setMascotBounce] = useState(false);
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isTyping]);
+    const interval = setInterval(() => {
+      setMascotBounce(true);
+      setTimeout(() => setMascotBounce(false), 600);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSend = (text: string) => {
-    // 1. Add user message
-    const newUserMsg: Message = { id: Date.now().toString(), role: "user", content: text };
-    setMessages((prev) => [...prev, newUserMsg]);
+    const newMsg: UserMessage = { id: Date.now().toString(), content: text };
+    setUserMessages((prev) => [...prev, newMsg]);
     setIsTyping(true);
 
-    // 2. Mock API logic
-    // In production, this would make a POST to /api/triage
+    // Mock API — in production POST to /api/triage
     setTimeout(() => {
       setIsTyping(false);
+      const nextIndex = questionIndex + 1;
 
-      const newCount = questionCount + 1;
-      setQuestionCount(newCount);
-
-      if (newCount >= 3) {
-        // Triage completed, trigger match logic stub
+      if (nextIndex >= AI_QUESTIONS.length) {
         setIsMatching(true);
-        // The /api/triage would return the JSON and we'd proceed to dashboard
-        // Stubbing out exit:
         setTimeout(() => {
-          // e.g. router.push('/patient/dashboard')
-          console.log("Mock routing to matched dashboard...")
+          console.log("Mock routing to matched dashboard...");
         }, 5000);
       } else {
-        // AI reply stub
-        const aiReplies = [
-          "I hear you. That sounds really tough. Can you tell me a little bit more about how this is affecting your daily life?",
-          "Thank you for sharing that with me. Have you been experiencing these feelings for a long time?",
-        ];
-
-        const aiMsg: Message = {
-          id: (Date.now() + 1).toString(),
-          role: "ai",
-          content: aiReplies[newCount - 1] || "Thanks for letting me know.",
-        };
-        setMessages((prev) => [...prev, aiMsg]);
+        setQuestionIndex(nextIndex);
+        setCurrentQuestion(AI_QUESTIONS[nextIndex]);
+        setBubbleKey((k) => k + 1);
       }
-    }, 1500); // Wait 1.5s to mockup typing/inference
+    }, 1500);
   };
 
   if (isMatching) {
@@ -74,38 +63,86 @@ export default function ChatLayout() {
   }
 
   return (
-    <div className="flex flex-col h-[100dvh] w-full max-w-2xl mx-auto bg-pearl shadow-xl relative overflow-hidden">
+    <div className="flex flex-col h-[100dvh] w-full max-w-2xl mx-auto bg-pearl shadow-md relative overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-center p-4 bg-white/80 backdrop-blur-md shadow-sm z-10">
+      <div className="flex items-center justify-between px-4 py-3 bg-white/90 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
+        <Link
+          href="/"
+          className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors text-charcoal flex-shrink-0"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </Link>
         <h1 className="font-heading font-bold text-xl text-sage">Wumbness Triage</h1>
+        <div className="w-9" />
       </div>
 
-      {/* Messages Window */}
-      <div className="flex-1 overflow-y-auto p-4 scoll-smooth">
-        {messages.map((msg) => (
-          <ChatMessage key={msg.id} role={msg.role} content={msg.content} />
-        ))}
+      {/* ===== UPPER CONTAINER: Mascot + Dialogue Bubble ===== */}
+      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-hidden">
+        {/* Mascot */}
+        <div
+          className={`relative transition-transform duration-500 ease-out ${
+            mascotBounce ? "-translate-y-1" : "translate-y-0"
+          }`}
+        >
+          <Image
+            src="/WumboMascot.png"
+            alt="Wumbo Mascot"
+            width={140}
+            height={140}
+            className="drop-shadow-xl"
+            priority
+          />
+        </div>
 
-        {/* Typing Bubble */}
-        {isTyping && (
-          <div className="flex w-full mb-4 justify-start animate-in fade-in">
-            <div className="w-10 h-10 rounded-full bg-sage flex-shrink-0 flex items-center justify-center mr-3 mt-1 shadow-sm opacity-50 pulse">
-              <svg viewBox="0 0 100 100" className="w-6 h-6 fill-white">
-                <path d="M41 9C55-5 83 2 92 19c9 16 3 39-10 49-14 11-37 17-53 6C13 63-1 43 0 25 1 6 25 24 41 9z" />
-              </svg>
+        {/* Dialogue Bubble — RPG style, replaces each question */}
+        <div className="w-full max-w-sm mt-4 relative">
+          {isTyping ? (
+            /* Typing indicator inside dialogue bubble */
+            <div className="bg-white rounded-3xl rounded-t-3xl px-6 py-5 shadow-sm border border-gray-100 relative animate-in fade-in duration-200">
+              {/* Triangle pointer */}
+              <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-l border-t border-gray-100 rotate-45" />
+              <div className="flex items-center justify-center space-x-1.5 py-1">
+                <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: "0ms" }} />
+                <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: "150ms" }} />
+                <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+              </div>
             </div>
-            <div className="px-5 py-4 bg-white border border-gray-100 rounded-3xl rounded-tl-sm flex items-center justify-center space-x-1 shadow-sm">
-              <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-              <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-              <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+          ) : (
+            /* Current question */
+            <div
+              key={bubbleKey}
+              className="bg-white rounded-3xl px-6 py-5 shadow-sm border border-gray-100 relative animate-in fade-in slide-in-from-bottom-2 duration-500"
+            >
+              {/* Triangle pointer pointing up towards mascot */}
+              <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-l border-t border-gray-100 rotate-45" />
+              <p className="font-body text-[15px] text-charcoal leading-relaxed text-center relative z-10">
+                {currentQuestion}
+              </p>
             </div>
+          )}
+        </div>
+      </div>
+
+      {/* ===== LOWER CONTAINER: User Messages + Input ===== */}
+      <div className="flex flex-col border-t-2 border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.04)] bg-white/50">
+        {/* Scrollable user messages */}
+        {userMessages.length > 0 && (
+          <div className="max-h-32 overflow-y-auto px-4 py-3 flex flex-col gap-2">
+            {userMessages.map((msg) => (
+              <div key={msg.id} className="flex w-full justify-end animate-in fade-in slide-in-from-bottom-1 duration-300">
+                <div className="max-w-[75%] px-4 py-3 sm:px-5 sm:py-3 rounded-3xl rounded-tr-sm bg-sage text-white shadow-sm">
+                  <p className="font-body text-[15px] leading-relaxed break-words">{msg.content}</p>
+                </div>
+              </div>
+            ))}
           </div>
         )}
-        <div ref={messagesEndRef} />
-      </div>
 
-      {/* Input Area */}
-      <ChatInput onSend={handleSend} disabled={isTyping} />
+        {/* Input */}
+        <ChatInput onSend={handleSend} disabled={isTyping} />
+      </div>
     </div>
   );
 }

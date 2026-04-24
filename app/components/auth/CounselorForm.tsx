@@ -2,14 +2,21 @@
 import { useState } from "react";
 
 const SPECIALTIES = [
-  "Anxiety & Panic",
   "Depression",
-  "School Stress",
-  "Family Dynamics",
-  "Identity & LGBTQ+",
-  "Grief & Loss",
-  "Relationships",
-  "Self-Esteem",
+  "Anger",
+  "Irritability",
+  "Mania",
+  "Anxiety",
+  "Somatic Symptoms",
+  "Inattention",
+  "Suicidal Ideation",
+  "Psychosis",
+  "Sleep Problems",
+  "Memory",
+  "Repetitive Thoughts",
+  "Disassociation",
+  "Personality Functioning",
+  "Substance Use"
 ];
 
 export default function CounselorForm() {
@@ -55,24 +62,23 @@ export default function CounselorForm() {
                   key={spec}
                   type="button"
                   onClick={() => toggleSpecialty(spec)}
-                  className={`text-left text-sm px-3 py-2 rounded-lg border transition-all ${
-                    selectedSpecialties.includes(spec)
+                  className={`text-left text-sm px-3 py-2 rounded-lg border transition-all ${selectedSpecialties.includes(spec)
                       ? "bg-brown text-white border-brown shadow-sm"
                       : "bg-white text-gray-500 border-gray-200 hover:border-brown hover:text-charcoal"
-                  }`}
+                    }`}
                 >
                   {spec}
                 </button>
               ))}
             </div>
             {selectedSpecialties.length > 0 && (
-                <p className="text-xs text-sage font-bold mt-2">
-                    {selectedSpecialties.length} selected
-                </p>
+              <p className="text-xs text-sage font-bold mt-2">
+                {selectedSpecialties.length} selected
+              </p>
             )}
           </div>
         )}
-        
+
         <button
           type="submit"
           className="w-full transform transition-all duration-200 bg-brown hover:bg-[#907563] text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl mt-2 active:scale-[0.98]"

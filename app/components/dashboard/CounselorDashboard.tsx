@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function CounselorDashboard() {
   const stats = [
     { label: "Patients Helped", value: "24", icon: "M12 4v16m8-8H4" },
@@ -30,16 +32,16 @@ export default function CounselorDashboard() {
   ];
 
   return (
-    <div className="flex flex-col gap-8 max-w-4xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
-      
+    <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+
       {/* Welcome & Stats */}
       <div>
         <h1 className="font-heading text-3xl font-bold text-charcoal mb-4">Welcome back, Counselor</h1>
-        <div className="grid grid-cols-3 gap-3 md:gap-6">
+        <div className="grid grid-cols-3 gap-3">
           {stats.map((stat) => (
-            <div key={stat.label} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-50 flex flex-col items-center justify-center text-center">
-               <span className="text-2xl md:text-3xl font-black text-brown font-heading">{stat.value}</span>
-               <span className="text-xs md:text-sm font-bold text-gray-400 mt-1">{stat.label}</span>
+            <div key={stat.label} className="bg-white rounded-3xl p-6 shadow-sm border border-gray-50 flex flex-col items-center justify-center text-center">
+              <span className="text-2xl font-black text-brown font-heading">{stat.value}</span>
+              <span className="text-xs font-bold text-gray-400 mt-1">{stat.label}</span>
             </div>
           ))}
         </div>
@@ -51,38 +53,41 @@ export default function CounselorDashboard() {
         <div className="flex flex-col gap-4">
           {matchedPatients.map((patient) => (
             <div key={patient.id} className="bg-white rounded-3xl p-6 shadow-sm border border-gray-50 hover:shadow-md transition-shadow relative overflow-hidden">
-               {patient.unread > 0 && (
-                   <div className="absolute top-0 right-0 bg-sage text-white text-xs font-bold px-3 py-1 rounded-bl-xl shadow-sm">
-                       {patient.unread} new messages
-                   </div>
-               )}
-               
-               <div className="flex items-center justify-between mb-4">
-                   <div className="flex items-center gap-3">
-                       <div className="w-12 h-12 bg-pearl rounded-full flex items-center justify-center font-heading font-black text-xl text-sage border border-sage/20">
-                           {patient.alias[patient.alias.length-1]}
-                       </div>
-                       <div>
-                         <h3 className="font-bold text-charcoal text-lg leading-tight">{patient.alias}</h3>
-                         <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{patient.severity}</span>
-                       </div>
-                   </div>
-               </div>
+              {patient.unread > 0 && (
+                <div className="absolute top-0 right-0 bg-sage text-white text-xs font-bold px-3 py-1 rounded-bl-xl shadow-sm">
+                  {patient.unread} new messages
+                </div>
+              )}
 
-               <div className="bg-pearl/50 rounded-2xl p-4 mb-4">
-                  <h4 className="text-xs font-bold text-charcoal mb-2 uppercase tracking-wide">AI Triage Summary</h4>
-                  <ul className="list-disc pl-5 space-y-1">
-                      {patient.triageSummary.map((bullet, idx) => (
-                          <li key={idx} className="text-sm text-gray-600 font-body">{bullet}</li>
-                      ))}
-                  </ul>
-               </div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-pearl rounded-full flex items-center justify-center font-heading font-black text-xl text-sage border border-sage/20">
+                    {patient.alias[patient.alias.length - 1]}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-charcoal text-lg leading-tight">{patient.alias}</h3>
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{patient.severity}</span>
+                  </div>
+                </div>
+              </div>
 
-               <div className="flex gap-2">
-                   <button className="flex-1 bg-brown hover:bg-[#907460] text-white font-bold py-3 rounded-xl shadow-sm transition-all active:scale-[0.98]">
-                      Enter Chat
-                   </button>
-               </div>
+              <div className="bg-pearl/50 rounded-2xl p-4 mb-4">
+                <h4 className="text-xs font-bold text-charcoal mb-2 uppercase tracking-wide">AI Triage Summary</h4>
+                <ul className="list-disc pl-5 space-y-1">
+                  {patient.triageSummary.map((bullet, idx) => (
+                    <li key={idx} className="text-sm text-gray-600 font-body">{bullet}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="flex gap-2">
+                <Link
+                  href="/chat"
+                  className="flex-1 bg-brown hover:bg-[#907460] text-white font-bold py-3 rounded-xl shadow-sm transition-all active:scale-[0.98] text-center"
+                >
+                  Enter Chat
+                </Link>
+              </div>
             </div>
           ))}
         </div>

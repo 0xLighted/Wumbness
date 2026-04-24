@@ -14,7 +14,7 @@ The design aims to feel **safe, welcoming, and uplifting**. We avoid clinical or
 
 ### 2.2. Color Palette
 To emphasize joy and calmness, we use a vibrant yet soothing palette:
-* **Primary (Joy/Energy):** Sage Green `#9AB17A` 
+* **Primary (Joy/Energy):** Sage Green `#98BC88`
 * **Secondary (Calm/Growth):** Brown `#A98B76`
 * **Light Mode Background:** Soft Pearl White `#FDFBF7` — Less harsh than pure white.
 * **Light Mode Text:** Deep Charcoal `#2B2D42` — For high readability without the starkness of pure black.
@@ -23,6 +23,26 @@ To emphasize joy and calmness, we use a vibrant yet soothing palette:
 * **Font Family:** `Nunito (Bold)` as Heading, `Nunito` as Body, `Dongle` as Sub-text
 * **Shapes:** Heavy use of rounded corners (e.g., `border-radius: 16px` to `24px` for cards, buttons, and input fields) to make the interface feel "soft" and approachable.
 * **Language:** Conversational, jargon-free, and highly empathetic (e.g., "How are you feeling today?" instead of "Input symptoms").
+
+### 2.4. Layout & Spacing Tokens (PWA Uniform Standards)
+All chat-based views (Triage, Chat Room) and dashboard cards share these consistent tokens to ensure visual harmony across the app.
+
+* **Chat Container Width:** `max-w-2xl` (672 px cap), centered via `mx-auto`.
+* **Chat Container Shadow:** `shadow-md` — medium elevation to lift from `bg-pearl` page.
+* **Chat Container Background:** `bg-pearl` (`#FDFBF7`).
+* **Header Bar:** `px-4 py-3`, `bg-white/90 backdrop-blur-md`, `border-b border-gray-100`.
+* **Message Area Padding:** `p-4 sm:p-6` (inner scroll region).
+* **Message Bubble Padding:** `px-4 py-3` mobile, `sm:px-5 sm:py-3` desktop.
+* **Message Bubble Max-Width:** `max-w-[75%]` on all breakpoints.
+* **Message Font Size:** `text-[15px]` body, `leading-relaxed`.
+* **Message Bottom Margin:** `mb-5` — consistent vertical rhythm between bubbles.
+* **Own-Message Bubble:** `bg-sage text-white rounded-3xl rounded-tr-sm shadow-sm`.
+* **Received-Message Bubble:** `bg-white text-charcoal border border-gray-100 rounded-3xl rounded-tl-sm shadow-sm`.
+* **Input Bar:** `px-4 py-3`, `bg-white/90 backdrop-blur-md`, `border-t border-gray-100`.
+* **Input Field:** `rounded-3xl`, `bg-gray-50 border border-gray-200`, focus ring `ring-sage/50`.
+* **Send Button:** `w-11 h-11 sm:w-12 sm:h-12`, `rounded-full bg-sage text-white`.
+* **Typing Indicator Dots:** `w-2 h-2`, `rounded-full bg-gray-400 animate-bounce`.
+* **Cards & Widgets:** `rounded-3xl`, `p-6`, `shadow-sm border border-gray-50`, `bg-white`.
 
 ---
 
