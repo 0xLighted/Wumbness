@@ -1,13 +1,13 @@
-import ChatLayout from "../components/triage/ChatLayout";
+import ChatRoomLayout from "../components/chat/ChatRoomLayout";
 
 export const metadata = {
-  title: "Triage Chat",
+  title: "Chat Room",
 };
 
-export default function TriagePage() {
+export default function ChatPage() {
   return (
     <main className="h-[100dvh] w-full bg-pearl flex items-center justify-center overflow-hidden overscroll-none">
-      <ChatLayout />
+      <ChatRoomLayout />
     </main>
   );
 }

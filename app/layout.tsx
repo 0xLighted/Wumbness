@@ -4,20 +4,20 @@ import ServiceWorkerRegister from "@/app/components/service-worker-register";
 
 export const metadata: Metadata = {
   title: {
-    default: "Wumbo Wellness",
-    template: "%s | Wumbo Wellness",
+    default: "Wumbness",
+    template: "%s | Wumbness",
   },
   description: "AI-powered youth wellbeing triage and counselor matching platform.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Wumbo Wellness",
+    title: "Wumbness",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#9AB17A",
+  themeColor: "#98BC88",
 };
 
 export default function RootLayout({
