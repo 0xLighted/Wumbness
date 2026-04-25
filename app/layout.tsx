@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     default: "Wumbness",
     template: "%s | Wumbness",
   },
-  description: "AI-powered youth wellbeing triage and counselor matching platform.",
+  description: "AI-powered youth wellbeing triage and counselor matching platform. Connect with professional counselors through intelligent matching.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,

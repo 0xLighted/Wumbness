@@ -1,5 +1,5 @@
-const CACHE_NAME = "wumbo-shell-v1";
-const APP_SHELL = ["/", "/offline.html", "/manifest.webmanifest", "/favicon.ico"];
+const CACHE_NAME = "wumbo-wellness-v1";
+const APP_SHELL = ["/", "/offline.html", "/manifest.webmanifest", "/favicon.ico", "/WumbnessLogoNew.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
