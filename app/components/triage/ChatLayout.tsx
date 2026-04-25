@@ -1,20 +1,16 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { DefaultChatTransport, type UIMessage } from "ai";
-import { useChat } from "@ai-sdk/react";
 import ChatInput from "./ChatInput";
 import ChatMessage from "./ChatMessage";
 import MatchingScreen from "./MatchingScreen";
-import { triageResponseSchema, type TriageResponse } from "@/lib/groq/triage";
+import { type TriageResponse } from "@/lib/groq/triage";
 
 const INITIAL_PROMPT =
   `I'm Wumbo, and I'm here to listen and help you feel heard. It takes a lot of courage to reach out for support, and I'm here to help you get connected with someone who can.
 
 How are you feeling right now?`;
-
-type TriageUIMessage = UIMessage<TriageResponse>;
 
 type RenderMessage = {
   id: string;
@@ -22,35 +18,17 @@ type RenderMessage = {
   content: string;
 };
 
-function getTextFromParts(parts: TriageUIMessage["parts"]) {
-  return parts
-    .filter((part) => part.type === "text")
-    .map((part) => part.text)
-    .join("")
-    .trim();
-}
-
 export default function ChatLayout() {
+  const [messages, setMessages] = useState<RenderMessage[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isMatching, setIsMatching] = useState(false);
 
-  const { messages, sendMessage, status, error } = useChat<TriageUIMessage>({
-    transport: new DefaultChatTransport({ api: "/api/triage" }),
-    messageMetadataSchema: triageResponseSchema,
-  });
-
-  const assistantMessages = useMemo(
-    () => messages.filter((message) => message.role === "assistant"),
-    [messages],
-  );
+  // Ref for the scrollable chat history container
+  const historyRef = useRef<HTMLDivElement>(null);
 
   const chatMessages = useMemo<RenderMessage[]>(() => {
-    return messages
-      .map<RenderMessage>((message) => ({
-        id: message.id,
-        role: message.role === "assistant" ? "ai" : "user",
-        content: getTextFromParts(message.parts),
-      }))
-      .filter((message) => message.content.length > 0);
+    return messages.filter((message) => message.content.length > 0);
   }, [messages]);
 
   const displayedMessages = useMemo<RenderMessage[]>(() => {
@@ -78,22 +56,66 @@ export default function ChatLayout() {
   }, [chatMessages]);
 
   const currentQuestion = useMemo(() => {
-    const lastAssistant = assistantMessages[assistantMessages.length - 1];
-    return lastAssistant ? getTextFromParts(lastAssistant.parts) : INITIAL_PROMPT;
-  }, [assistantMessages]);
+    const lastAssistant = [...messages].reverse().find((message) => message.role === "ai");
+    return lastAssistant ? lastAssistant.content : INITIAL_PROMPT;
+  }, [messages]);
 
-  useEffect(() => {
-    const lastAssistant = assistantMessages[assistantMessages.length - 1];
-    if (lastAssistant?.metadata?.status === "complete") {
-      setIsMatching(true);
+  const handleSend = async (text: string) => {
+    const userMessage: RenderMessage = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content: text,
+    };
+
+    const nextMessages = [...messages, userMessage];
+    setMessages(nextMessages);
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/triage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: nextMessages.map((message) => ({
+            role: message.role === "ai" ? "assistant" : "user",
+            parts: [{ type: "text", text: message.content }],
+          })),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch triage response");
+      }
+
+      const triageResponse: TriageResponse = await response.json();
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "ai",
+          content: triageResponse.response,
+        },
+      ]);
+
+      if (triageResponse.status === "complete") {
+        setIsMatching(true);
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-  }, [assistantMessages]);
-
-  const handleSend = (text: string) => {
-    sendMessage({ text });
   };
 
-  const isTyping = status === "submitted" || status === "streaming";
+
+  // Auto-scroll to bottom when displayedMessages changes
+  useEffect(() => {
+    if (historyRef.current) {
+      historyRef.current.scrollTop = historyRef.current.scrollHeight;
+    }
+  }, [displayedMessages]);
 
   if (isMatching) {
     return <MatchingScreen />;
@@ -134,7 +156,7 @@ export default function ChatLayout() {
           </div>
 
           <div className="w-full max-w-sm mt-4 relative">
-            {isTyping ? (
+            {isLoading ? (
               <div className="bg-white rounded-3xl rounded-t-3xl px-6 py-5 shadow-sm border border-gray-100 relative animate-in fade-in duration-200">
                 <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-l border-t border-gray-100 rotate-45" />
                 <div className="flex items-center justify-center space-x-1.5 py-1">
@@ -155,7 +177,10 @@ export default function ChatLayout() {
         </div>
 
         <div className="flex-1 min-h-0 border-t-2 border-gray-200 bg-white/35">
-          <div className="h-full overflow-y-auto px-4 py-3 sm:px-6 sm:py-4">
+          <div
+            ref={historyRef}
+            className="h-full overflow-y-auto px-4 py-3 sm:px-6 sm:py-4"
+          >
             {displayedMessages.map((message) => (
               <ChatMessage key={message.id} role={message.role} content={message.content} />
             ))}
@@ -164,7 +189,7 @@ export default function ChatLayout() {
       </div>
 
       <div className="flex flex-col border-t-2 border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.04)] bg-white/50">
-        <ChatInput onSend={handleSend} disabled={isTyping} />
+        <ChatInput onSend={handleSend} disabled={isLoading} />
       </div>
     </div>
   );
