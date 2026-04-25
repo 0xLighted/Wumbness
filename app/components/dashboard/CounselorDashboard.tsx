@@ -1,6 +1,10 @@
 import Link from "next/link";
 
-export default function CounselorDashboard() {
+interface CounselorDashboardProps {
+  firstName?: string | null;
+}
+
+export default function CounselorDashboard({ firstName }: CounselorDashboardProps) {
   const stats = [
     { label: "Patients Helped", value: "24", icon: "M12 4v16m8-8H4" },
     { label: "Hours Volunteered", value: "86", icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" },
@@ -36,7 +40,9 @@ export default function CounselorDashboard() {
 
       {/* Welcome & Stats */}
       <div>
-        <h1 className="font-heading text-3xl font-bold text-charcoal mb-4">Welcome back, Counselor</h1>
+        <h1 className="font-heading text-3xl font-bold text-charcoal mb-4">
+          {firstName ? `Welcome back, ${firstName}` : "Welcome back, Counselor"}
+        </h1>
         <div className="grid grid-cols-3 gap-3">
           {stats.map((stat) => (
             <div key={stat.label} className="bg-white rounded-3xl p-6 shadow-sm border border-gray-50 flex flex-col items-center justify-center text-center">

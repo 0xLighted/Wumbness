@@ -18,7 +18,22 @@ type RenderMessage = {
   content: string;
 };
 
-export default function ChatLayout() {
+type ChatLayoutProps = {
+  firstName?: string | null;
+};
+
+function getInitialPrompt(firstName?: string | null): string {
+  if (!firstName) {
+    return INITIAL_PROMPT;
+  }
+
+  return `I'm Wumbo, and I'm here to listen and help you feel heard. It takes a lot of courage to reach out for support, ${firstName}, and I'm here to help you get connected with someone who can.
+
+How are you feeling right now?`;
+}
+
+export default function ChatLayout({ firstName }: ChatLayoutProps) {
+  const initialPrompt = useMemo(() => getInitialPrompt(firstName), [firstName]);
   const [messages, setMessages] = useState<RenderMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +50,7 @@ export default function ChatLayout() {
     const initialMessage: RenderMessage = {
       id: "initial-triage-prompt",
       role: "ai",
-      content: INITIAL_PROMPT,
+      content: initialPrompt,
     };
 
     if (chatMessages.length === 0) {
@@ -53,12 +68,12 @@ export default function ChatLayout() {
     return hasUserResponded
       ? [initialMessage, ...historyWithoutCurrentQuestion]
       : historyWithoutCurrentQuestion;
-  }, [chatMessages]);
+  }, [chatMessages, initialPrompt]);
 
   const currentQuestion = useMemo(() => {
     const lastAssistant = [...messages].reverse().find((message) => message.role === "ai");
-    return lastAssistant ? lastAssistant.content : INITIAL_PROMPT;
-  }, [messages]);
+    return lastAssistant ? lastAssistant.content : initialPrompt;
+  }, [messages, initialPrompt]);
 
   const handleSend = async (text: string) => {
     const userMessage: RenderMessage = {
@@ -77,6 +92,7 @@ export default function ChatLayout() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          firstName,
           messages: nextMessages.map((message) => ({
             role: message.role === "ai" ? "assistant" : "user",
             parts: [{ type: "text", text: message.content }],
@@ -122,11 +138,11 @@ export default function ChatLayout() {
   }
 
   return (
-    <div className="flex flex-col h-[100dvh] w-full max-w-2xl mx-auto bg-pearl shadow-md relative overflow-hidden">
+    <div className="flex flex-col h-dvh w-full max-w-2xl mx-auto bg-pearl shadow-md relative overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 bg-white/90 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
         <Link
           href="/"
-          className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors text-charcoal flex-shrink-0"
+          className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors text-charcoal shrink-0"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />

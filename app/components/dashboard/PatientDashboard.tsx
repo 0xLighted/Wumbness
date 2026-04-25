@@ -3,9 +3,10 @@ import Link from "next/link";
 
 interface PatientDashboardProps {
   isFirstTime?: boolean;
+  firstName?: string | null;
 }
 
-export default function PatientDashboard({ isFirstTime = false }: PatientDashboardProps) {
+export default function PatientDashboard({ isFirstTime = false, firstName }: PatientDashboardProps) {
   const counselor = {
     name: "Sarah Jenkins, LSW",
     bio: "Specializes in youth anxiety, school stress, and building self-esteem. Here to listen.",
@@ -17,7 +18,9 @@ export default function PatientDashboard({ isFirstTime = false }: PatientDashboa
 
       {/* Header */}
       <div className="mb-2">
-        <h1 className="font-heading text-3xl font-bold text-charcoal">Hello there,</h1>
+        <h1 className="font-heading text-3xl font-bold text-charcoal">
+          {firstName ? `Hello, ${firstName}` : "Hello there,"}
+        </h1>
         <p className="text-gray-500 font-sub text-2xl leading-none">Your safe space awaits.</p>
       </div>
 

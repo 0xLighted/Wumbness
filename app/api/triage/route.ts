@@ -6,6 +6,7 @@ import {
 } from "@/lib/groq/triage";
 
 const triageRequestSchema = z.object({
+  firstName: z.string().trim().min(1).optional(),
   messages: z
     .array(
       z.object({
@@ -55,7 +56,9 @@ export async function POST(request: Request) {
     }
 
     const messages = toTriageMessages(parsed.data.messages);
-    const triageResponse = await generateTriageResponse(messages);
+    const triageResponse = await generateTriageResponse(messages, {
+      firstName: parsed.data.firstName,
+    });
     return NextResponse.json(triageResponse);
   } catch {
     return NextResponse.json({ error: "Failed to generate triage response" }, { status: 500 });

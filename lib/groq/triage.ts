@@ -84,6 +84,23 @@ When status is "continue", you MUST adhere to these strict rules:
 
 const TRIAGE_MODEL = process.env.GROQ_TRIAGE_MODEL ?? "meta-llama/llama-4-scout-17b-16e-instruct";
 
+type TriageContext = {
+	firstName?: string;
+};
+
+function buildTriageSystemPrompt(context?: TriageContext): string {
+	const firstName = context?.firstName?.trim();
+	if (!firstName) {
+		return TRIAGE_SYSTEM_PROMPT;
+	}
+
+	return `${TRIAGE_SYSTEM_PROMPT}
+
+Personalization:
+- The user's first name is ${firstName}.
+- You may occasionally use their first name to sound warm and supportive, but do not overuse it.`;
+}
+
 function normalizeRole(role: TriageRole): "user" | "assistant" {
   return role === "user" ? "user" : "assistant";
 }
@@ -111,7 +128,10 @@ function normalizeContent(content: string): string {
 	return `${capitalized}.`;
 }
 
-export async function generateTriageResponse(messages: TriageMessage[]): Promise<TriageResponse> {
+export async function generateTriageResponse(
+	messages: TriageMessage[],
+	context?: TriageContext,
+): Promise<TriageResponse> {
 	const conversation = normalizeMessages(messages);
 
 	const result = await generateText({
@@ -119,7 +139,7 @@ export async function generateTriageResponse(messages: TriageMessage[]): Promise
 		output: Output.object({
 			schema: triageResponseSchema,
 		}),
-		system: TRIAGE_SYSTEM_PROMPT,
+		system: buildTriageSystemPrompt(context),
 		messages: conversation,
 		temperature: 0.4,
 	});
