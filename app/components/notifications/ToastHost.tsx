@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Toaster, toast } from "react-hot-toast";
 
+export type ToastKey = "login-success" | "login-error" | "signup-success" | "signup-error";
+
 const TOAST_MESSAGES: Record<string, { type: "success" | "error"; message: string }> = {
   "login-success": {
     type: "success",
@@ -23,6 +25,20 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; message: strin
   },
 };
 
+export function showLoadingToast(kind: "login" | "signup") {
+  toast.dismiss();
+  return toast.loading(kind === "login" ? "Signing in..." : "Creating account...");
+}
+
+export function dismissToast(toastId?: string) {
+  if (toastId) {
+    toast.dismiss(toastId);
+    return;
+  }
+
+  toast.dismiss();
+}
+
 export default function ToastHost() {
   const router = useRouter();
   const pathname = usePathname();
@@ -35,13 +51,17 @@ export default function ToastHost() {
     }
 
     const config = TOAST_MESSAGES[toastKey];
+    const errorDetails = searchParams.get("errorDetails");
+
     if (config) {
+      const message = errorDetails ?? config.message;
       toast.dismiss();
-      toast[config.type](config.message);
+      toast[config.type](message);
     }
 
     const nextParams = new URLSearchParams(searchParams.toString());
     nextParams.delete("toast");
+    nextParams.delete("errorDetails");
     const query = nextParams.toString();
     router.replace(query ? `${pathname}?${query}` : pathname);
   }, [pathname, router, searchParams]);
