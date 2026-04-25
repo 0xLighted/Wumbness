@@ -1,6 +1,8 @@
 import { generateText, Output } from "ai";
 import { groq } from "@ai-sdk/groq";
 import { z } from "zod";
+// import { SYMPTOMS } from "@/app/components/triage/data";
+import { SYMPTOMS } from "../../app/components/triage/data";
 
 export type TriageRole = "user" | "ai";
 
@@ -9,12 +11,14 @@ export type TriageMessage = {
 	content: string;
 };
 
+const triageSymptomSchema = z.enum(SYMPTOMS);
 export const triageStatusSchema = z.enum(["continue", "complete"]);
 
 export const triageResponseSchema = z.object({
 	response: z.string().min(1),
 	status: triageStatusSchema,
 	summary: z.union([z.string(), z.null()]),
+	symptoms: z.array(triageSymptomSchema),
 }).superRefine((value, context) => {
 	if (value.status === "complete" && !value.summary) {
 		context.addIssue({
@@ -29,6 +33,22 @@ export const triageResponseSchema = z.object({
 			code: 'custom',
 			path: ["summary"],
 			message: "summary must be null unless status is complete",
+		});
+	}
+
+	if (value.status === "complete" && value.symptoms.length < 1) {
+		context.addIssue({
+			code: 'custom',
+			path: ["symptoms"],
+			message: "at least one symptom is required when status is complete",
+		});
+	}
+
+	if (value.status !== "complete" && value.symptoms.length > 0) {
+		context.addIssue({
+			code: 'custom',
+			path: ["symptoms"],
+			message: "symptoms must be empty unless status is complete",
 		});
 	}
 });
@@ -57,6 +77,11 @@ When sufficient information is gathered, the user has fully vented, or they begi
 1. Gently explain that you have enough information to connect them with professional help and end the conversation.
 2. Set status to complete.
 3. Provide a concise summary in the summary field.
+4. Provide at least one symptom in the symptoms array using ONLY these exact values: ${SYMPTOMS.join(", ")}.
+
+When status is continue:
+- summary must be null
+- symptoms must be an empty array
 `;
 
 const TRIAGE_MODEL = process.env.GROQ_TRIAGE_MODEL ?? "meta-llama/llama-4-scout-17b-16e-instruct";
@@ -101,7 +126,6 @@ export async function generateTriageResponse(messages: TriageMessage[]): Promise
 		temperature: 0.4,
 	});
 
-    console.log("Generated triage response:", result.output);
 	return result.output;
 }
 

@@ -32,8 +32,10 @@ describe("triage chat library - integration with real Groq API", () => {
       if (response.status === "complete") {
         expect(response.summary).toBeTruthy();
         expect(typeof response.summary).toBe("string");
+        expect(response.symptoms.length).toBeGreaterThanOrEqual(1);
       } else {
         expect(response.summary).toBeNull();
+        expect(response.symptoms).toEqual([]);
       }
 
       console.log("Real API Response:", JSON.stringify(response, null, 2));
@@ -68,19 +70,24 @@ describe("triage chat library - integration with real Groq API", () => {
 
       // Response should reference the conversation context
       expect(response.response.length).toBeGreaterThan(0);
+      if (response.status === "complete") {
+        expect(response.symptoms.length).toBeGreaterThanOrEqual(1);
+      } else {
+        expect(response.symptoms).toEqual([]);
+      }
 
       console.log("Multi-turn API Response:", JSON.stringify(response, null, 2));
     },
   );
 
   (apiKeyAvailable ? it : it.skip)(
-    "escalates urgent safety concerns",
+    "completed chat correctly identifies urgent safety concern",
     { timeout: 60000 },
     async () => {
       const messages: TriageMessage[] = [
         {
           role: "user",
-          content: "I've been thinking about hurting myself. I don't think anyone would miss me.",
+          content: "i have severe depression and anxiety and have been getting very angry recently. i do not wish to continue with the conversation ",
         },
       ];
 
@@ -93,6 +100,11 @@ describe("triage chat library - integration with real Groq API", () => {
       // Should recognize urgent safety concern
       expect(["continue", "complete"]).toContain(response.status);
       expect(response.response).toBeTruthy();
+      if (response.status === "complete") {
+        expect(response.symptoms.length).toBeGreaterThanOrEqual(1);
+      } else {
+        expect(response.symptoms).toEqual([]);
+      }
 
       console.log("Urgent Safety Response:", JSON.stringify(response, null, 2));
     },

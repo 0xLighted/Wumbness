@@ -1,23 +1,7 @@
 "use client";
 import { useState } from "react";
-
-const SPECIALTIES = [
-  "Depression",
-  "Anger",
-  "Irritability",
-  "Mania",
-  "Anxiety",
-  "Somatic Symptoms",
-  "Inattention",
-  "Suicidal Ideation",
-  "Psychosis",
-  "Sleep Problems",
-  "Memory",
-  "Repetitive Thoughts",
-  "Disassociation",
-  "Personality Functioning",
-  "Substance Use"
-];
+import { SYMPTOMS } from "../triage/data";
+import { login, signup } from "@/lib/supabase/action";
 
 export default function CounselorForm() {
   const [isLogin, setIsLogin] = useState(true);
@@ -33,10 +17,11 @@ export default function CounselorForm() {
 
   return (
     <div className="flex flex-col gap-4">
-      <form className="flex flex-col gap-4" onSubmit={(e) => e.preventDefault()}>
+      <form className="flex flex-col gap-4" action={isLogin ? login : signup}>
         {!isLogin && (
           <div className="animate-in fade-in slide-in-from-top-2 duration-300">
             <input
+              name="fullName"
               type="text"
               placeholder="Full Name"
               className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage/50 focus:border-sage transition-all"
@@ -46,6 +31,7 @@ export default function CounselorForm() {
         )}
         <div>
           <input
+            name="email"
             type="email"
             placeholder="Work Email address"
             className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage/50 focus:border-sage transition-all"
@@ -54,6 +40,7 @@ export default function CounselorForm() {
         </div>
         <div>
           <input
+            name="password"
             type="password"
             placeholder="Password"
             className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage/50 focus:border-sage transition-all"
@@ -61,23 +48,28 @@ export default function CounselorForm() {
           />
         </div>
 
+        <input name="role" type="hidden" value="counselor" />
+        {!isLogin && selectedSpecialties.map((symptom) => (
+          <input key={symptom} name="specialties" type="hidden" value={symptom} />
+        ))}
+
         {!isLogin && (
           <div className="mt-2">
             <label className="block text-sm font-bold text-charcoal mb-2">
               Select Your Specialties (Max 3)
             </label>
             <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-2 pb-2">
-              {SPECIALTIES.map((spec) => (
+              {SYMPTOMS.map((symptom) => (
                 <button
-                  key={spec}
+                  key={symptom}
                   type="button"
-                  onClick={() => toggleSpecialty(spec)}
-                  className={`text-left text-sm px-3 py-2 rounded-lg border transition-all ${selectedSpecialties.includes(spec)
+                  onClick={() => toggleSpecialty(symptom)}
+                  className={`text-left text-sm px-3 py-2 rounded-lg border transition-all ${selectedSpecialties.includes(symptom)
                       ? "bg-brown text-white border-brown shadow-sm"
                       : "bg-white text-gray-500 border-gray-200 hover:border-brown hover:text-charcoal"
                     }`}
                 >
-                  {spec}
+                  {symptom}
                 </button>
               ))}
             </div>
@@ -85,7 +77,7 @@ export default function CounselorForm() {
               <p className="text-xs text-sage font-bold mt-2">
                 {selectedSpecialties.length} selected
               </p>
-            )}
+            )} 
           </div>
         )}
 

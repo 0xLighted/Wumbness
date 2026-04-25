@@ -1,62 +1,99 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { DefaultChatTransport, type UIMessage } from "ai";
+import { useChat } from "@ai-sdk/react";
 import ChatInput from "./ChatInput";
+import ChatMessage from "./ChatMessage";
 import MatchingScreen from "./MatchingScreen";
+import { triageResponseSchema, type TriageResponse } from "@/lib/groq/triage";
 
-const AI_QUESTIONS = [
-  "Hello! I\u0027m Wumbo, and I\u0027m here to help find the perfect counselor for you. What brings you here today?",
-  "I hear you. That sounds really tough. Can you tell me a bit more about how this is affecting your daily life?",
-  "Thank you for sharing that with me. Have you been experiencing these feelings for a long time?",
-];
+const INITIAL_PROMPT =
+  `I'm Wumbo, and I'm here to listen and help you feel heard. It takes a lot of courage to reach out for support, and I'm here to help you get connected with someone who can.
 
-type UserMessage = {
+How are you feeling right now?`;
+
+type TriageUIMessage = UIMessage<TriageResponse>;
+
+type RenderMessage = {
   id: string;
+  role: "ai" | "user";
   content: string;
 };
 
-export default function ChatLayout() {
-  const [currentQuestion, setCurrentQuestion] = useState(AI_QUESTIONS[0]);
-  const [questionIndex, setQuestionIndex] = useState(0);
-  const [userMessages, setUserMessages] = useState<UserMessage[]>([]);
-  const [isTyping, setIsTyping] = useState(false);
-  const [isMatching, setIsMatching] = useState(false);
-  // Key to force re-mount of the dialogue bubble for animation
-  const [bubbleKey, setBubbleKey] = useState(0);
+function getTextFromParts(parts: TriageUIMessage["parts"]) {
+  return parts
+    .filter((part) => part.type === "text")
+    .map((part) => part.text)
+    .join("")
+    .trim();
+}
 
-  // Subtle idle bounce on mascot
-  const [mascotBounce, setMascotBounce] = useState(false);
+export default function ChatLayout() {
+  const [isMatching, setIsMatching] = useState(false);
+
+  const { messages, sendMessage, status, error } = useChat<TriageUIMessage>({
+    transport: new DefaultChatTransport({ api: "/api/triage" }),
+    messageMetadataSchema: triageResponseSchema,
+  });
+
+  const assistantMessages = useMemo(
+    () => messages.filter((message) => message.role === "assistant"),
+    [messages],
+  );
+
+  const chatMessages = useMemo<RenderMessage[]>(() => {
+    return messages
+      .map<RenderMessage>((message) => ({
+        id: message.id,
+        role: message.role === "assistant" ? "ai" : "user",
+        content: getTextFromParts(message.parts),
+      }))
+      .filter((message) => message.content.length > 0);
+  }, [messages]);
+
+  const displayedMessages = useMemo<RenderMessage[]>(() => {
+    const initialMessage: RenderMessage = {
+      id: "initial-triage-prompt",
+      role: "ai",
+      content: INITIAL_PROMPT,
+    };
+
+    if (chatMessages.length === 0) {
+      return [];
+    }
+
+    const lastMessage = chatMessages[chatMessages.length - 1];
+    const historyWithoutCurrentQuestion =
+      lastMessage.role === "ai" ? chatMessages.slice(0, -1) : chatMessages;
+
+    const hasUserResponded = historyWithoutCurrentQuestion.some(
+      (message) => message.role === "user",
+    );
+
+    return hasUserResponded
+      ? [initialMessage, ...historyWithoutCurrentQuestion]
+      : historyWithoutCurrentQuestion;
+  }, [chatMessages]);
+
+  const currentQuestion = useMemo(() => {
+    const lastAssistant = assistantMessages[assistantMessages.length - 1];
+    return lastAssistant ? getTextFromParts(lastAssistant.parts) : INITIAL_PROMPT;
+  }, [assistantMessages]);
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      setMascotBounce(true);
-      setTimeout(() => setMascotBounce(false), 600);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
+    const lastAssistant = assistantMessages[assistantMessages.length - 1];
+    if (lastAssistant?.metadata?.status === "complete") {
+      setIsMatching(true);
+    }
+  }, [assistantMessages]);
 
   const handleSend = (text: string) => {
-    const newMsg: UserMessage = { id: Date.now().toString(), content: text };
-    setUserMessages((prev) => [...prev, newMsg]);
-    setIsTyping(true);
-
-    // Mock API — in production POST to /api/triage
-    setTimeout(() => {
-      setIsTyping(false);
-      const nextIndex = questionIndex + 1;
-
-      if (nextIndex >= AI_QUESTIONS.length) {
-        setIsMatching(true);
-        setTimeout(() => {
-          console.log("Mock routing to matched dashboard...");
-        }, 5000);
-      } else {
-        setQuestionIndex(nextIndex);
-        setCurrentQuestion(AI_QUESTIONS[nextIndex]);
-        setBubbleKey((k) => k + 1);
-      }
-    }, 1500);
+    sendMessage({ text });
   };
+
+  const isTyping = status === "submitted" || status === "streaming";
 
   if (isMatching) {
     return <MatchingScreen />;
@@ -64,7 +101,6 @@ export default function ChatLayout() {
 
   return (
     <div className="flex flex-col h-[100dvh] w-full max-w-2xl mx-auto bg-pearl shadow-md relative overflow-hidden">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 bg-white/90 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
         <Link
           href="/"
@@ -78,69 +114,56 @@ export default function ChatLayout() {
         <div className="w-9" />
       </div>
 
-      {/* ===== UPPER CONTAINER: Mascot + Dialogue Bubble ===== */}
-      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-hidden">
-        {/* Mascot */}
-        <div
-          className={`relative transition-transform duration-500 ease-out ${
-            mascotBounce ? "-translate-y-1" : "translate-y-0"
-          }`}
-        >
-          <Image
-            src="/WumboMascot.png"
-            alt="Wumbo Mascot"
-            width={140}
-            height={140}
-            className="drop-shadow-xl"
-            priority
-          />
+      {error && (
+        <div className="mx-4 mt-3 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
+          Something went wrong. Please try again.
+        </div>
+      )}
+
+      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div className="shrink-0 flex flex-col items-center justify-center px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4">
+          <div className="relative animate-bounce" style={{ animationDuration: "2.5s" }}>
+            <Image
+              src="/WumboMascot.png"
+              alt="Wumbo searching for your counselor"
+              width={120}
+              height={120}
+              className="drop-shadow-xl"
+              priority
+            />
+          </div>
+
+          <div className="w-full max-w-sm mt-4 relative">
+            {isTyping ? (
+              <div className="bg-white rounded-3xl rounded-t-3xl px-6 py-5 shadow-sm border border-gray-100 relative animate-in fade-in duration-200">
+                <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-l border-t border-gray-100 rotate-45" />
+                <div className="flex items-center justify-center space-x-1.5 py-1">
+                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white rounded-3xl px-6 py-5 shadow-sm border border-gray-100 relative animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-l border-t border-gray-100 rotate-45" />
+                <p className="font-body text-[15px] text-charcoal leading-relaxed text-center relative z-10">
+                  {currentQuestion}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Dialogue Bubble — RPG style, replaces each question */}
-        <div className="w-full max-w-sm mt-4 relative">
-          {isTyping ? (
-            /* Typing indicator inside dialogue bubble */
-            <div className="bg-white rounded-3xl rounded-t-3xl px-6 py-5 shadow-sm border border-gray-100 relative animate-in fade-in duration-200">
-              {/* Triangle pointer */}
-              <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-l border-t border-gray-100 rotate-45" />
-              <div className="flex items-center justify-center space-x-1.5 py-1">
-                <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: "0ms" }} />
-                <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: "150ms" }} />
-                <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: "300ms" }} />
-              </div>
-            </div>
-          ) : (
-            /* Current question */
-            <div
-              key={bubbleKey}
-              className="bg-white rounded-3xl px-6 py-5 shadow-sm border border-gray-100 relative animate-in fade-in slide-in-from-bottom-2 duration-500"
-            >
-              {/* Triangle pointer pointing up towards mascot */}
-              <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-l border-t border-gray-100 rotate-45" />
-              <p className="font-body text-[15px] text-charcoal leading-relaxed text-center relative z-10">
-                {currentQuestion}
-              </p>
-            </div>
-          )}
+        <div className="flex-1 min-h-0 border-t-2 border-gray-200 bg-white/35">
+          <div className="h-full overflow-y-auto px-4 py-3 sm:px-6 sm:py-4">
+            {displayedMessages.map((message) => (
+              <ChatMessage key={message.id} role={message.role} content={message.content} />
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* ===== LOWER CONTAINER: User Messages + Input ===== */}
       <div className="flex flex-col border-t-2 border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.04)] bg-white/50">
-        {/* Scrollable user messages */}
-        {userMessages.length > 0 && (
-          <div className="max-h-32 overflow-y-auto px-4 py-3 flex flex-col gap-2">
-            {userMessages.map((msg) => (
-              <div key={msg.id} className="flex w-full justify-end animate-in fade-in slide-in-from-bottom-1 duration-300">
-                <div className="max-w-[75%] px-4 py-3 sm:px-5 sm:py-3 rounded-3xl rounded-tr-sm bg-sage text-white shadow-sm">
-                  <p className="font-body text-[15px] leading-relaxed break-words">{msg.content}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Input */}
         <ChatInput onSend={handleSend} disabled={isTyping} />
       </div>
     </div>
