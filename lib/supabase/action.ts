@@ -55,6 +55,35 @@ function extractFirstError(error: z.ZodError): string {
   return 'Validation failed'
 }
 
+type UserProfileInput = {
+  userId: string
+  role: 'PATIENT' | 'COUNSELOR'
+  fullName: string | null
+  specialties?: string[]
+  embedding?: string | null
+}
+
+async function upsertUserProfile(profile: UserProfileInput): Promise<void> {
+  const supabase = await createClient()
+
+  const { error } = await supabase.from('users').upsert(
+    {
+      id: profile.userId,
+      role: profile.role,
+      fullname: profile.fullName,
+      specialties: profile.specialties ?? [],
+      embedding: profile.embedding ?? null,
+    },
+    { onConflict: 'id' },
+  )
+
+  if (error) {
+    throw new Error(`Failed to save profile information: ${error.message}`)
+  }
+
+  revalidatePath('/', 'layout')
+}
+
 export async function login(formData: FormData) {
   const supabase = await createClient()
 
@@ -145,6 +174,7 @@ export async function signup(formData: FormData) {
 
   const userId = signupData.user?.id
 
+  console.log('Signup successful, user ID:', userId)
   if (!userId) {
     redirect(`/auth?toast=signup-error&errorDetails=${encodeErrorToUrl('Failed to create account')}`)
   }
@@ -159,19 +189,16 @@ export async function signup(formData: FormData) {
     embedding = toVectorLiteral(counselorEmbedding)
   }
 
-  const { error: userInsertError } = await supabase.from('users').upsert(
-    {
-      id: userId,
+  try {
+    await upsertUserProfile({
+      userId,
       role,
-      fullname: parsed.data.fullName,
+      fullName: parsed.data.fullName,
       specialties: userSpecialties,
       embedding,
-    },
-    { onConflict: 'id' },
-  )
-
-  if (userInsertError) {
-    const errorMsg = 'Failed to save profile information'
+    })
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : 'Failed to save profile information'
     redirect(`/auth?toast=signup-error&errorDetails=${encodeErrorToUrl(errorMsg)}`)
   }
 
