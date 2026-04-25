@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import ServiceWorkerRegister from "@/app/components/service-worker-register";
@@ -30,7 +31,9 @@ export default function RootLayout({
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
         <ServiceWorkerRegister />
-        <ToastHost />
+        <Suspense fallback={null}>
+          <ToastHost />
+        </Suspense>
         {children}
       </body>
     </html>
