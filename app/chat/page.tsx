@@ -6,7 +6,7 @@ export const metadata = {
 
 export default function ChatPage() {
   return (
-    <main className="h-[100dvh] w-full bg-pearl flex items-center justify-center overflow-hidden overscroll-none">
+    <main className="flex-1 min-h-0 w-full flex items-center justify-center overflow-hidden">
       <ChatRoomLayout />
     </main>
   );

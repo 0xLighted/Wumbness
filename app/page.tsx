@@ -1,4 +1,3 @@
-import AppNavigation from "./components/navigation/AppNavigation";
 import PatientDashboard from "./components/dashboard/PatientDashboard";
 import CounselorDashboard from "./components/dashboard/CounselorDashboard";
 import { getCurrentUser } from "@/lib/supabase/current-user";
@@ -15,10 +14,8 @@ export default async function HomePage() {
   const isFirstTime = true;
 
   return (
-    <div className="min-h-screen bg-pearl">
-      <AppNavigation />
-
-      <main className="w-full flex-1 sm:pt-24 pb-20 p-4 sm:p-6">
+    <div className="flex-1 min-h-0 overflow-y-auto">
+      <main className="w-full min-h-full p-4 sm:p-6 pb-20">
         {role === "patient" ? (
           <PatientDashboard isFirstTime={isFirstTime} firstName={firstName} />
         ) : (

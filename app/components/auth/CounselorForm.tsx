@@ -37,7 +37,10 @@ export default function CounselorForm() {
     <div className="flex flex-col gap-4">
       <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
         {!isLogin && (
-          <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="animate-in fade-in slide-in-from-top-2 duration-300 space-y-2">
+            <label className="block text-xs font-semibold text-gray-600">
+              Full Name
+            </label>
             <input
               name="fullName"
               type="text"
@@ -47,7 +50,10 @@ export default function CounselorForm() {
             />
           </div>
         )}
-        <div>
+        <div className="space-y-2">
+          <label className="block text-xs font-semibold text-gray-600">
+            Work Email address
+          </label>
           <input
             name="email"
             type="email"
@@ -75,8 +81,8 @@ export default function CounselorForm() {
                   type="button"
                   onClick={() => toggleSpecialty(symptom)}
                   className={`text-left text-sm px-3 py-2 rounded-lg border transition-all ${selectedSpecialties.includes(symptom)
-                      ? "bg-brown text-white border-brown shadow-sm"
-                      : "bg-white text-gray-500 border-gray-200 hover:border-brown hover:text-charcoal"
+                    ? "bg-brown text-white border-brown shadow-sm"
+                    : "bg-white text-gray-500 border-gray-200 hover:border-brown hover:text-charcoal"
                     }`}
                 >
                   {symptom}
@@ -87,14 +93,14 @@ export default function CounselorForm() {
               <p className="text-xs text-sage font-bold mt-2">
                 {selectedSpecialties.length} selected
               </p>
-            )} 
+            )}
           </div>
         )}
 
         <button
           type="submit"
           disabled={isPending}
-          className="w-full transform transition-all duration-200 bg-brown hover:bg-[#907563] disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl mt-2 active:scale-[0.98]"
+          className="w-full transform transition-all duration-200 bg-brown hover:bg-brown/80 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl mt-2 active:scale-[0.98]"
         >
           {isPending ? (
             <span className="flex items-center justify-center gap-2">

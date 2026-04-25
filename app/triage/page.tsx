@@ -9,7 +9,7 @@ export default async function TriagePage() {
   const user = await getCurrentUser();
 
   return (
-    <main className="h-dvh w-full bg-pearl flex items-center justify-center overflow-hidden overscroll-none">
+    <main className="flex-1 min-h-0 w-full flex items-center justify-center overflow-hidden">
       <ChatLayout firstName={user?.firstName ?? null} />
     </main>
   );
