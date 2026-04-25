@@ -89,10 +89,14 @@ export async function login(formData: FormData) {
 export async function signOut() {
   const supabase = await createClient()
 
-  await supabase.auth.signOut()
+  const { error } = await supabase.auth.signOut()
+
+  if (error) {
+    redirect(`/auth?toast=signout-error&errorDetails=${encodeErrorToUrl(error.message || 'Sign out failed')}`)
+  }
 
   revalidatePath('/', 'layout')
-  redirect('/auth')
+  redirect('/auth?toast=signout-success')
 }
 
 export async function signup(formData: FormData) {

@@ -4,7 +4,13 @@ import { useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Toaster, toast } from "react-hot-toast";
 
-export type ToastKey = "login-success" | "login-error" | "signup-success" | "signup-error";
+export type ToastKey =
+  | "login-success"
+  | "login-error"
+  | "signup-success"
+  | "signup-error"
+  | "signout-success"
+  | "signout-error";
 
 const TOAST_MESSAGES: Record<string, { type: "success" | "error"; message: string }> = {
   "login-success": {
@@ -23,11 +29,27 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; message: strin
     type: "error",
     message: "Registration failed. Please review your details and try again.",
   },
+  "signout-success": {
+    type: "success",
+    message: "You’re signed out.",
+  },
+  "signout-error": {
+    type: "error",
+    message: "Sign out failed. Please try again.",
+  },
 };
 
-export function showLoadingToast(kind: "login" | "signup") {
+export function showLoadingToast(kind: "login" | "signup" | "signout") {
   toast.dismiss();
-  return toast.loading(kind === "login" ? "Signing in..." : "Creating account...");
+  if (kind === "login") {
+    return toast.loading("Signing in...");
+  }
+
+  if (kind === "signup") {
+    return toast.loading("Creating account...");
+  }
+
+  return toast.loading("Signing out...");
 }
 
 export function dismissToast(toastId?: string) {

@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { signOut } from "@/lib/supabase/action";
+import { showLoadingToast } from "@/app/components/notifications/ToastHost";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -64,7 +65,12 @@ export default function AppNavigation() {
           Download App
         </button>
 
-        <form action={signOut}>
+        <form
+          action={signOut}
+          onSubmit={() => {
+            showLoadingToast("signout");
+          }}
+        >
           <button
             type="submit"
             className="px-3 py-2 rounded-lg bg-pearl text-charcoal text-sm font-semibold hover:bg-gray-100 transition-colors border border-gray-200"
