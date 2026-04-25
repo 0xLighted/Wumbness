@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import ServiceWorkerRegister from "@/app/components/service-worker-register";
+import ToastHost from "@/app/components/notifications/ToastHost";
 
 export const metadata: Metadata = {
   title: {
@@ -29,6 +30,7 @@ export default function RootLayout({
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
         <ServiceWorkerRegister />
+        <ToastHost />
         {children}
       </body>
     </html>

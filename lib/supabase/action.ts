@@ -40,7 +40,7 @@ export async function login(formData: FormData) {
   })
 
   if (!parsed.success) {
-    redirect('/error')
+    redirect('/auth?toast=login-error')
   }
 
   const data = {
@@ -51,11 +51,11 @@ export async function login(formData: FormData) {
   const { error } = await supabase.auth.signInWithPassword(data)
 
   if (error) {
-    redirect('/error')
+    redirect('/auth?toast=login-error')
   }
 
   revalidatePath('/', 'layout')
-  redirect('/account')
+  redirect('/?toast=login-success')
 }
 
 export async function signup(formData: FormData) {
@@ -75,7 +75,7 @@ export async function signup(formData: FormData) {
 
   const parsed = signupSchema.safeParse(rawInput)
   if (!parsed.success) {
-    redirect('/error')
+    redirect('/auth?toast=signup-error')
   }
 
   const specialties = parsed.data.role === 'counselor' ? parsed.data.specialties : []
@@ -95,9 +95,9 @@ export async function signup(formData: FormData) {
   const { error } = await supabase.auth.signUp(data)
 
   if (error) {
-    redirect('/error')
+    redirect('/auth?toast=signup-error')
   }
 
   revalidatePath('/', 'layout')
-  redirect('/account')
+  redirect('/?toast=signup-success')
 }
