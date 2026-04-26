@@ -17,10 +17,10 @@ export default async function HomePage() {
     const activeMatch = await getPatientActiveMatch(user.id);
 
     return (
-      <div className="min-h-screen bg-pearl">
+      <div className="flex-1 min-h-0 overflow-y-auto">
         <AppNavigation />
 
-        <main className="w-full flex-1 sm:pt-24 pb-20 p-4 sm:p-6">
+        <main className="w-full min-h-full p-4 sm:p-6 pb-20">
           <PatientDashboard
             isFirstTime={!activeMatch}
             firstName={firstName}
@@ -34,10 +34,9 @@ export default async function HomePage() {
   const matchedPatients = await getCounselorQueue(user.id);
 
   return (
-    <div className="min-h-screen bg-pearl">
+    <div className="flex-1 min-h-0 overflow-y-auto">
       <AppNavigation />
-
-      <main className="w-full flex-1 sm:pt-24 pb-20 p-4 sm:p-6">
+      <main className="w-full min-h-full p-4 sm:p-6 pb-20">
         <CounselorDashboard firstName={firstName} matchedPatients={matchedPatients} />
       </main>
     </div>

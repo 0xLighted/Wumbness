@@ -66,7 +66,7 @@ export default function CounselorDashboard({ firstName, matchedPatients }: Couns
               <div className="flex gap-2">
                 <Link
                   href="/chat"
-                  className="flex-1 bg-brown hover:bg-[#907460] text-white font-bold py-3 rounded-xl shadow-sm transition-all active:scale-[0.98] text-center"
+                  className="flex-1 bg-brown hover:bg-brown/80 text-white font-bold py-3 rounded-xl shadow-sm transition-all active:scale-[0.98] text-center"
                 >
                   Enter Chat
                 </Link>

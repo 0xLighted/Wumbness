@@ -8,9 +8,8 @@ export default function ChatMessage({ role, content }: ChatMessageProps) {
 
   return (
     <div
-      className={`flex w-full mb-5 ${
-        isAI ? "justify-start" : "justify-end"
-      } animate-in fade-in slide-in-from-bottom-1 duration-300`}
+      className={`flex w-full mb-5 ${isAI ? "justify-start" : "justify-end"
+        } animate-in fade-in slide-in-from-bottom-1 duration-300`}
     >
       {isAI && (
         <div className="w-10 h-10 rounded-full bg-sage flex-shrink-0 flex items-center justify-center mr-3 mt-1 shadow-sm">
@@ -24,11 +23,10 @@ export default function ChatMessage({ role, content }: ChatMessageProps) {
         className={`flex flex-col max-w-[75%] ${isAI ? "items-start" : "items-end"}`}
       >
         <div
-          className={`px-4 py-3 sm:px-5 sm:py-3 rounded-3xl shadow-sm ${
-            isAI
+          className={`px-4 py-3 sm:px-5 sm:py-3 rounded-3xl shadow-sm ${isAI
               ? "bg-white text-charcoal border border-gray-100 rounded-tl-sm"
               : "bg-sage text-white rounded-tr-sm"
-          }`}
+            }`}
         >
           <p className="whitespace-pre-wrap font-body text-[15px] leading-relaxed break-words">
             {content}
