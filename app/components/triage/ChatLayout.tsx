@@ -204,7 +204,7 @@ export default function ChatLayout({ firstName }: ChatLayoutProps) {
       )}
 
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-        <div className="shrink-0 flex flex-col items-center justify-center px-4 pt-2 pb-2 sm:pt-4 sm:pb-3 max-h-[50%] overflow-y-auto" style={{ scrollbarWidth: "none" }}>
+        <div className="shrink-0 flex flex-col items-center justify-center px-4 pt-2 pb-2 sm:pt-4 sm:pb-3 max-h-[45vh] overflow-y-auto" style={{ scrollbarWidth: "none" }}>
           <div className="relative animate-bounce-light shrink-0" style={{ animationDuration: "2.5s" }}>
             {chatMessages.length < 1 && (<Image
               src="/wumbos/HiBubble.png"
@@ -226,7 +226,7 @@ export default function ChatLayout({ firstName }: ChatLayoutProps) {
           </div>
 
           {/* AI Dialogue Bubble */}
-          <div className="w-full mt-3 sm:mt-4 px-1 relative shrink-0">
+          <div className="w-full mt-3 sm:mt-4 px-1 relative max-w-md mx-auto shrink-0">
             <div className="bg-white rounded-[20px] sm:rounded-3xl p-4 sm:p-3 shadow-[0_8px_24px_rgba(0,0,0,0.06)] border-2 border-sage/40 relative animate-in fade-in duration-300">
               {/* Triangular Speech Node */}
               <div className="absolute -top-[11px] left-1/2 -translate-x-1/2 w-5 h-5 bg-white border-l-2 border-t-2 border-sage/40 rotate-45 rounded-tl-sm" />
@@ -238,7 +238,7 @@ export default function ChatLayout({ firstName }: ChatLayoutProps) {
                   <div className="w-2.5 h-2.5 rounded-full bg-sage animate-bounce" style={{ animationDelay: "300ms" }} />
                 </div>
               ) : (
-                <p className="font-body text-[12px] sm:text-[14px] text-charcoal font-medium leading-relaxed text-center relative z-10 whitespace-pre-wrap">
+                <p className="font-body text-[15.5px] text-charcoal font-medium leading-relaxed text-center relative z-10 whitespace-pre-wrap">
                   {currentQuestion}
                 </p>
               )}
@@ -258,7 +258,7 @@ export default function ChatLayout({ firstName }: ChatLayoutProps) {
         </div>
       </div>
 
-      <div className="shrink-0 flex flex-col border-t-2 border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.04)] bg-white/50">
+      <div className="flex flex-col border-t-2 border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.04)] bg-white/50">
         <ChatInput onSend={handleSend} disabled={isLoading} />
       </div>
     </div>

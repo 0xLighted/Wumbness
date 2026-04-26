@@ -6,8 +6,6 @@ import ToastHost from "@/app/components/notifications/ToastHost";
 import AppNavigation from "./components/navigation/AppNavigation";
 import { getCurrentUser } from "@/lib/supabase/current-user";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: {
     default: "Wumbness",
@@ -24,10 +22,6 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#98BC88",
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 };
 
 export default async function RootLayout({
@@ -38,8 +32,8 @@ export default async function RootLayout({
   const user = await getCurrentUser();
 
   return (
-    <html lang="en" className="h-[100dvh] w-full bg-pearl antialiased">
-      <body className="h-[100dvh] w-full overflow-hidden overscroll-none relative">
+    <html lang="en" className="h-svh w-full bg-pearl antialiased">
+      <body className="h-svh w-full overflow-hidden overscroll-none relative">
         {/* Background Wumbo Pattern */}
         <div className="fixed inset-0 z-0 pointer-events-none opacity-10">
           <svg width="100%" height="100%">
