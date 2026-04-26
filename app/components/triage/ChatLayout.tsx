@@ -32,7 +32,6 @@ function getInitialPrompt(firstName?: string | null): string {
   }
 
   return `I'm Wumbo, and I'm here to listen and help you feel heard. It takes a lot of courage to reach out for support, ${firstName}, and I'm here to help you get connected with someone who can.
-
 How are you feeling right now?`;
 }
 
@@ -55,14 +54,8 @@ export default function ChatLayout({ firstName }: ChatLayoutProps) {
   }, [messages]);
 
   const displayedMessages = useMemo<RenderMessage[]>(() => {
-    const initialMessage: RenderMessage = {
-      id: "initial-triage-prompt",
-      role: "ai",
-      content: initialPrompt,
-    };
-
-    return [initialMessage, ...chatMessages];
-  }, [chatMessages, initialPrompt]);
+    return chatMessages.filter(m => m.role === "user");
+  }, [chatMessages]);
 
   const currentQuestion = useMemo(() => {
     const lastAssistant = [...messages].reverse().find((message) => message.role === "ai");
@@ -167,11 +160,22 @@ export default function ChatLayout({ firstName }: ChatLayoutProps) {
     }
   };
 
-  // Auto-scroll to bottom when displayedMessages changes
+  // Auto-scroll to absolute bottom when displayedMessages changes
   useEffect(() => {
-    if (historyRef.current) {
-      historyRef.current.scrollTop = historyRef.current.scrollHeight;
-    }
+    const scrollToBottom = () => {
+      if (historyRef.current) {
+        // Force the container to scroll to its maximum absolute height
+        historyRef.current.scrollTo({
+          top: historyRef.current.scrollHeight,
+          behavior: "smooth",
+        });
+      }
+    };
+
+    // Run immediately, and also after a delay to account for CSS slide-in animations
+    scrollToBottom();
+    const timeout = setTimeout(scrollToBottom, 150);
+    return () => clearTimeout(timeout);
   }, [displayedMessages]);
 
   if (isMatching) {
@@ -179,7 +183,7 @@ export default function ChatLayout({ firstName }: ChatLayoutProps) {
   }
 
   return (
-    <div className="flex flex-col h-full w-full max-w-2xl mx-auto bg-pearl shadow-md relative overflow-hidden">
+    <div className="flex flex-col h-full w-full max-w-2xl mx-auto bg-transparent shadow-md relative overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 bg-white/90 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
         <Link
           href="/"
@@ -200,27 +204,46 @@ export default function ChatLayout({ firstName }: ChatLayoutProps) {
       )}
 
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-        <div className="shrink-0 flex flex-col items-center justify-center px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4">
-          <div className="relative animate-bounce-light" style={{ animationDuration: "2.5s" }}>
+        <div className="shrink-0 flex flex-col items-center justify-center px-4 pt-2 pb-2 sm:pt-4 sm:pb-3 max-h-[45vh] overflow-y-auto" style={{ scrollbarWidth: "none" }}>
+          <div className="relative animate-bounce-light shrink-0" style={{ animationDuration: "2.5s" }}>
             {chatMessages.length < 1 && (<Image
               src="/wumbos/HiBubble.png"
               alt="Chat bubble"
-              width={48}
-              height={48}
-              className="pointer-events-none absolute -top-3 -left-5 z-10 drop-shadow-lg"
+              width={40}
+              height={40}
+              className="pointer-events-none absolute -top-2 -left-4 z-10 drop-shadow-lg"
               aria-hidden="true"
             />)}
             <Image
               src="/wumbos/WumboHappi.png"
               alt="Wumbo searching for your counselor"
-              width={120}
-              height={120}
+              width={100}
+              height={100}
               className="drop-shadow-xl"
               priority
               key={"new wumbo"}
             />
           </div>
 
+          {/* AI Dialogue Bubble */}
+          <div className="w-full mt-3 sm:mt-4 px-1 relative max-w-md mx-auto shrink-0">
+            <div className="bg-white rounded-[20px] sm:rounded-3xl p-4 sm:p-3 shadow-[0_8px_24px_rgba(0,0,0,0.06)] border-2 border-sage/40 relative animate-in fade-in duration-300">
+              {/* Triangular Speech Node */}
+              <div className="absolute -top-[11px] left-1/2 -translate-x-1/2 w-5 h-5 bg-white border-l-2 border-t-2 border-sage/40 rotate-45 rounded-tl-sm" />
+
+              {isLoading ? (
+                <div className="flex items-center justify-center space-x-1.5 py-3 relative z-10">
+                  <div className="w-2.5 h-2.5 rounded-full bg-sage animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <div className="w-2.5 h-2.5 rounded-full bg-sage animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <div className="w-2.5 h-2.5 rounded-full bg-sage animate-bounce" style={{ animationDelay: "300ms" }} />
+                </div>
+              ) : (
+                <p className="font-body text-[15.5px] text-charcoal font-medium leading-relaxed text-center relative z-10 whitespace-pre-wrap">
+                  {currentQuestion}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="flex-1 min-h-0 border-t-2 border-gray-200 bg-white/35">
@@ -231,16 +254,6 @@ export default function ChatLayout({ firstName }: ChatLayoutProps) {
             {displayedMessages.map((message) => (
               <ChatMessage key={message.id} role={message.role} content={message.content} />
             ))}
-
-            {isLoading && (
-              <div className="flex w-full mt-2 mb-5 justify-start animate-in fade-in ml-1">
-                <div className="px-4 py-3 bg-white border border-gray-100 rounded-3xl rounded-tl-sm flex items-center justify-center space-x-1 shadow-sm h-11">
-                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
