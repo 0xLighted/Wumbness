@@ -258,7 +258,7 @@ export default function ChatLayout({ firstName }: ChatLayoutProps) {
         </div>
       </div>
 
-      <div className="flex flex-col border-t-2 border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.04)] bg-white/50">
+      <div className="shrink-0 flex flex-col border-t-2 border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.04)] bg-white/50">
         <ChatInput onSend={handleSend} disabled={isLoading} />
       </div>
     </div>
