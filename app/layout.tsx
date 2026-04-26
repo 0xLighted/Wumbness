@@ -32,8 +32,8 @@ export default async function RootLayout({
   const user = await getCurrentUser();
 
   return (
-    <html lang="en" className="h-svh w-full bg-pearl antialiased">
-      <body className="h-svh w-full overflow-hidden overscroll-none relative">
+    <html lang="en" className="h-[100dvh] min-h-svh w-full bg-pearl antialiased">
+      <body className="h-[100dvh] min-h-svh w-full overflow-hidden overscroll-none relative">
         {/* Background Wumbo Pattern */}
         <div className="fixed inset-0 z-0 pointer-events-none opacity-10">
           <svg width="100%" height="100%">

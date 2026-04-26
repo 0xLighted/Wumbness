@@ -8,7 +8,7 @@ export default function ChatMessage({ role, content }: ChatMessageProps) {
 
   return (
     <div
-      className={`flex w-full mb-2 ${isAI ? "justify-start" : "justify-end"
+      className={`flex w-full mb-2 shrink-0 ${isAI ? "justify-start" : "justify-end"
         } animate-in fade-in slide-in-from-bottom-1 duration-300`}
     >
       {/* {isAI && (
