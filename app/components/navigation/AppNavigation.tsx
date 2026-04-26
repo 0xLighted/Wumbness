@@ -48,15 +48,15 @@ export default function AppNavigation({ user }: { user: CurrentUser | null }) {
   return (
     <nav className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200 shadow-sm fixed z-50 top-0 left-0 right-0">
 
-      <Link href="/" className="flex items-center gap-3">
+      <Link href="/" className="flex items-center gap-1">
         <Image
-          src="/WumbnessLogoNew.png"
+          src="/WumbnessFullLogo.png"
           alt="Wumbness Logo"
-          width={36}
+          width={100}
           height={36}
           className="drop-shadow-sm"
         />
-        <span className="font-heading font-black text-2xl text-sage">Wumbness</span>
+        {/* <span className="font-heading font-black text-2xl text-brown">umbness</span> */}
       </Link>
 
       <div className="flex items-center gap-2">

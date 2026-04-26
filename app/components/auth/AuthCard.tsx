@@ -1,5 +1,6 @@
 import PatientForm from "./PatientForm";
 import CounselorForm from "./CounselorForm";
+import Image from "next/image";
 
 interface AuthCardProps {
   role: "patient" | "counselor";
@@ -10,6 +11,17 @@ export default function AuthCard({ role, onRoleChange }: AuthCardProps) {
   return (
     <div className="bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden relative">
       <div className="p-8">
+        <div className="flex flex-col items-center mb-8 gap-3">
+          <Image
+            src="/WumbnessLogoNew.png"
+            alt="Wumbness Logo"
+            width={120}
+            height={120}
+            className="drop-shadow-lg"
+            priority
+          />
+          {/* <h1 className="font-heading text-4xl text-sage font-black tracking-tight">Wumbness</h1> */}
+        </div>
         <h1 className="font-heading text-3xl font-bold text-center mb-2 text-charcoal">
           Welcome to Wumbness
         </h1>
