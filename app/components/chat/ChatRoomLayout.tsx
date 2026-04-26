@@ -135,7 +135,7 @@ export default function ChatRoomLayout({
   };
 
   return (
-    <div className="flex flex-col h-full w-full max-w-2xl mx-auto bg-pearl shadow-md relative overflow-hidden">
+    <div className="flex flex-col h-full w-full max-w-2xl mx-auto bg-transparent shadow-md relative overflow-hidden">
       <ChatHeader recipientName={peerName} isOnline={!isReadOnly} isReadOnly={isReadOnly} />
 
       {isReadOnly && (

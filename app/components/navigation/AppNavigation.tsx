@@ -48,15 +48,15 @@ export default function AppNavigation({ user }: { user: CurrentUser | null }) {
   return (
     <nav className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200 shadow-sm fixed z-50 top-0 left-0 right-0">
 
-      <Link href="/" className="flex items-center gap-1">
+      <Link href="/" className="flex items-center">
         <Image
           src="/WumbnessFullLogo.png"
           alt="Wumbness Logo"
-          width={100}
-          height={36}
-          className="drop-shadow-sm"
+          width={160}
+          height={40}
+          className="drop-shadow-sm w-auto h-8"
+          priority
         />
-        {/* <span className="font-heading font-black text-2xl text-brown">umbness</span> */}
       </Link>
 
       <div className="flex items-center gap-2">
@@ -70,19 +70,19 @@ export default function AppNavigation({ user }: { user: CurrentUser | null }) {
         </button>
 
         {user && (
-        <form
-          action={signOut}
-          onSubmit={() => {
-            showLoadingToast("signout");
-          }}
-        >
-          <button
-            type="submit"
-            className="p-3 rounded-lg bg-pearl text-charcoal text-sm font-semibold hover:bg-gray-100 transition-colors border border-gray-200"
+          <form
+            action={signOut}
+            onSubmit={() => {
+              showLoadingToast("signout");
+            }}
           >
-            <LogOut className="w-4 h-4" />
-          </button>
-        </form>
+            <button
+              type="submit"
+              className="p-3 rounded-lg bg-pearl text-charcoal text-sm font-semibold hover:bg-gray-100 transition-colors border border-gray-200"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </form>
         )}
       </div>
     </nav>
