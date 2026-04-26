@@ -204,7 +204,7 @@ export default function ChatLayout({ firstName }: ChatLayoutProps) {
       )}
 
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-        <div className="shrink-0 flex flex-col items-center justify-center px-4 pt-2 pb-2 sm:pt-4 sm:pb-3 max-h-[50%] overflow-y-auto" style={{ scrollbarWidth: "none" }}>
+        <div className="shrink-0 flex flex-col items-center justify-center px-4 pt-2 pb-2 sm:pt-4 sm:pb-3 max-h-[45vh] overflow-y-auto" style={{ scrollbarWidth: "none" }}>
           <div className="relative animate-bounce-light shrink-0" style={{ animationDuration: "2.5s" }}>
             {chatMessages.length < 1 && (<Image
               src="/wumbos/HiBubble.png"
