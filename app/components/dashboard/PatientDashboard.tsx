@@ -1,17 +1,28 @@
 "use client";
 import Link from "next/link";
-import type { PatientMatchCard } from "@/lib/supabase/matches";
+import type { PatientMatchCard, PatientPastMatchCard } from "@/lib/supabase/matches";
 
 interface PatientDashboardProps {
   isFirstTime?: boolean;
   firstName?: string | null;
   matchedCounselor?: PatientMatchCard | null;
+  pastMatches?: PatientPastMatchCard[];
+}
+
+function formatClosedAt(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "Previous match";
+  }
+
+  return `Closed ${date.toLocaleDateString()}`;
 }
 
 export default function PatientDashboard({
   isFirstTime = false,
   firstName,
   matchedCounselor,
+  pastMatches = [],
 }: PatientDashboardProps) {
 
   return (
@@ -78,7 +89,7 @@ export default function PatientDashboard({
           </div>
 
           <Link
-            href="/chat"
+            href={matchedCounselor ? `/chat/${matchedCounselor.matchId}` : "/"}
             className="mt-5 w-full bg-sage hover:bg-[#84a874] text-white font-bold py-4 rounded-2xl shadow-md transition-all active:scale-[0.98] flex justify-center items-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -87,6 +98,27 @@ export default function PatientDashboard({
             Resume Chat
           </Link>
         </div>
+      )}
+
+      {pastMatches.length > 0 && (
+        <section className="bg-white rounded-3xl p-6 shadow-sm border border-gray-50">
+          <h2 className="font-heading font-bold text-xl text-charcoal mb-4">Past Chats</h2>
+          <div className="flex flex-col gap-3">
+            {pastMatches.map((match) => (
+              <Link
+                key={match.matchId}
+                href={`/chat/${match.matchId}`}
+                className="flex items-center justify-between rounded-2xl border border-gray-100 bg-pearl/40 px-4 py-3 hover:bg-pearl/70 transition-colors"
+              >
+                <div>
+                  <p className="text-sm font-semibold text-charcoal">{match.counselorName}</p>
+                  <p className="text-xs font-medium text-gray-500">{formatClosedAt(match.closedAt)}</p>
+                </div>
+                <span className="text-xs font-bold text-sage">View</span>
+              </Link>
+            ))}
+          </div>
+        </section>
       )}
 
     </div>

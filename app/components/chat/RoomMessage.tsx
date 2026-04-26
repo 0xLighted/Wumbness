@@ -18,7 +18,7 @@ export default function RoomMessage({ content, timestamp, isOwnMessage, isRead }
               : "bg-white text-charcoal border border-gray-100 rounded-tl-sm"
           }`}
         >
-          <p className="whitespace-pre-wrap font-body text-[15px] leading-relaxed break-words">
+          <p className="whitespace-pre-wrap font-body text-[15px] leading-relaxed wrap-break-word">
             {content}
           </p>
         </div>
@@ -29,7 +29,7 @@ export default function RoomMessage({ content, timestamp, isOwnMessage, isRead }
             {timestamp}
           </span>
           
-          {isOwnMessage && (
+          {isOwnMessage && typeof isRead === "boolean" && (
             <span className={`text-[10px] sm:text-xs font-bold ml-1 ${isRead ? "text-sage" : "text-gray-300"}`}>
                {isRead ? "Read" : "Sent"}
             </span>

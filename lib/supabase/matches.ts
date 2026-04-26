@@ -22,6 +22,19 @@ export type CounselorQueueItem = {
   symptoms: string[];
 };
 
+export type PatientPastMatchCard = {
+  matchId: string;
+  counselorName: string;
+  closedAt: string;
+};
+
+export type CounselorPastMatchItem = {
+  matchId: string;
+  patientId: string;
+  alias: string;
+  closedAt: string;
+};
+
 const concludeMatchSchema = z.object({
   matchId: z.uuid("Invalid match identifier"),
 });
@@ -30,6 +43,8 @@ type MatchRow = {
   id: string;
   patient_id: string;
   counselor_id: string;
+  status: string | null;
+  created_at: string;
   triage_summary: {
     summary?: string;
     symptoms?: string[];
@@ -177,7 +192,7 @@ export async function getCounselorQueue(counselorId: string): Promise<CounselorQ
 
   const { data: matchRows, error: matchesError } = await supabase
     .from("matches")
-    .select("id, patient_id, counselor_id, triage_summary")
+    .select("id, patient_id, counselor_id, status, created_at, triage_summary")
     .eq("counselor_id", counselorId)
     .eq("status", "ACTIVE")
     .order("created_at", { ascending: false });
@@ -218,4 +233,80 @@ export async function getCounselorQueue(counselorId: string): Promise<CounselorQ
       symptoms: toSymptomChips(triageSummary),
     };
   });
+}
+
+export async function getPatientClosedMatches(patientId: string): Promise<PatientPastMatchCard[]> {
+  const supabase = await createClient();
+
+  const { data: matchRows, error: matchesError } = await supabase
+    .from("matches")
+    .select("id, counselor_id, status, created_at")
+    .eq("patient_id", patientId)
+    .eq("status", "CLOSED")
+    .order("created_at", { ascending: false });
+
+  if (matchesError || !matchRows || matchRows.length === 0) {
+    return [];
+  }
+
+  const counselorIds = [...new Set(matchRows.map((match) => match.counselor_id as string))];
+  const { data: counselors, error: counselorError } = await supabase
+    .from("users")
+    .select("id, fullname")
+    .in("id", counselorIds);
+
+  if (counselorError || !counselors) {
+    return [];
+  }
+
+  const counselorById = new Map<string, string>();
+  for (const counselor of counselors) {
+    counselorById.set(
+      counselor.id as string,
+      ((counselor.fullname as string | null) ?? "Assigned Counselor").trim() || "Assigned Counselor",
+    );
+  }
+
+  return matchRows.map((match) => ({
+    matchId: match.id as string,
+    counselorName: counselorById.get(match.counselor_id as string) ?? "Assigned Counselor",
+    closedAt: match.created_at as string,
+  }));
+}
+
+export async function getCounselorClosedQueue(counselorId: string): Promise<CounselorPastMatchItem[]> {
+  const supabase = await createClient();
+
+  const { data: matchRows, error: matchesError } = await supabase
+    .from("matches")
+    .select("id, patient_id, status, created_at")
+    .eq("counselor_id", counselorId)
+    .eq("status", "CLOSED")
+    .order("created_at", { ascending: false });
+
+  if (matchesError || !matchRows || matchRows.length === 0) {
+    return [];
+  }
+
+  const patientIds = [...new Set(matchRows.map((match) => match.patient_id as string))];
+  const { data: patients, error: patientsError } = await supabase
+    .from("users")
+    .select("id, fullname")
+    .in("id", patientIds);
+
+  if (patientsError || !patients) {
+    return [];
+  }
+
+  const patientById = new Map<string, string | null>();
+  for (const patient of patients) {
+    patientById.set(patient.id as string, (patient.fullname as string | null) ?? null);
+  }
+
+  return matchRows.map((match) => ({
+    matchId: match.id as string,
+    patientId: match.patient_id as string,
+    alias: toPatientAlias(patientById.get(match.patient_id as string) ?? null),
+    closedAt: match.created_at as string,
+  }));
 }
