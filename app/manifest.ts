@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Wumbo Wellness",
+    name: "Wumbness",
     short_name: "Wumbo",
     description: "AI-powered youth wellbeing triage and counselor matching platform. Connect with professional counselors through intelligent matching.",
     start_url: "/",
