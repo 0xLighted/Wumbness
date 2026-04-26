@@ -18,8 +18,6 @@ export default async function HomePage() {
 
     return (
       <div className="flex-1 min-h-0 overflow-y-auto">
-        <AppNavigation />
-
         <main className="w-full min-h-full p-4 sm:p-6 pb-20">
           <PatientDashboard
             isFirstTime={!activeMatch}
@@ -35,7 +33,6 @@ export default async function HomePage() {
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto">
-      <AppNavigation />
       <main className="w-full min-h-full p-4 sm:p-6 pb-20">
         <CounselorDashboard firstName={firstName} matchedPatients={matchedPatients} />
       </main>

@@ -59,32 +59,32 @@ export default function AppNavigation({ user }: { user: CurrentUser | null }) {
         <span className="font-heading font-black text-2xl text-sage">Wumbness</span>
       </Link>
 
-      {user && (
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleInstall}
-            disabled={!installPrompt}
-            className="p-3 rounded-lg bg-sage text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#8CA26E] transition-colors"
-          >
-            <Download className="w-4 h-4" />
-          </button>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={handleInstall}
+          disabled={!installPrompt}
+          className="p-3 rounded-lg bg-sage text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#8CA26E] transition-colors"
+        >
+          <Download className="w-4 h-4" />
+        </button>
 
-          <form
-            action={signOut}
-            onSubmit={() => {
-              showLoadingToast("signout");
-            }}
+        {user && (
+        <form
+          action={signOut}
+          onSubmit={() => {
+            showLoadingToast("signout");
+          }}
+        >
+          <button
+            type="submit"
+            className="p-3 rounded-lg bg-pearl text-charcoal text-sm font-semibold hover:bg-gray-100 transition-colors border border-gray-200"
           >
-            <button
-              type="submit"
-              className="p-3 rounded-lg bg-pearl text-charcoal text-sm font-semibold hover:bg-gray-100 transition-colors border border-gray-200"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </form>
-        </div>
-      )}
+            <LogOut className="w-4 h-4" />
+          </button>
+        </form>
+        )}
+      </div>
     </nav>
   );
 }
