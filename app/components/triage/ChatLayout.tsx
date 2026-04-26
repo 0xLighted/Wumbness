@@ -226,7 +226,7 @@ export default function ChatLayout({ firstName }: ChatLayoutProps) {
           </div>
 
           {/* AI Dialogue Bubble */}
-          <div className="w-full mt-3 sm:mt-4 px-1 relative max-w-md mx-auto shrink-0">
+          <div className="w-full mt-3 sm:mt-4 px-1 relative shrink-0">
             <div className="bg-white rounded-[20px] sm:rounded-3xl p-4 sm:p-3 shadow-[0_8px_24px_rgba(0,0,0,0.06)] border-2 border-sage/40 relative animate-in fade-in duration-300">
               {/* Triangular Speech Node */}
               <div className="absolute -top-[11px] left-1/2 -translate-x-1/2 w-5 h-5 bg-white border-l-2 border-t-2 border-sage/40 rotate-45 rounded-tl-sm" />
@@ -238,7 +238,7 @@ export default function ChatLayout({ firstName }: ChatLayoutProps) {
                   <div className="w-2.5 h-2.5 rounded-full bg-sage animate-bounce" style={{ animationDelay: "300ms" }} />
                 </div>
               ) : (
-                <p className="font-body text-[15.5px] text-charcoal font-medium leading-relaxed text-center relative z-10 whitespace-pre-wrap">
+                <p className="font-body text-[12px] sm:text-[14px] text-charcoal font-medium leading-relaxed text-center relative z-10 whitespace-pre-wrap">
                   {currentQuestion}
                 </p>
               )}
