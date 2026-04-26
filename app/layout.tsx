@@ -6,6 +6,8 @@ import ToastHost from "@/app/components/notifications/ToastHost";
 import AppNavigation from "./components/navigation/AppNavigation";
 import { getCurrentUser } from "@/lib/supabase/current-user";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: {
     default: "Wumbness",
@@ -22,6 +24,10 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#98BC88",
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default async function RootLayout({

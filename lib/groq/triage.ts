@@ -141,7 +141,7 @@ export async function generateTriageResponse(
 		}),
 		system: buildTriageSystemPrompt(context),
 		messages: conversation,
-		temperature: 0.4,
+		temperature: 0.2,
 	});
 
 	return result.output;
