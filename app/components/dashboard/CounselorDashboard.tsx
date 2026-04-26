@@ -1,13 +1,27 @@
 import Link from "next/link";
-import type { CounselorQueueItem } from "@/lib/supabase/matches";
+import type { CounselorPastMatchItem, CounselorQueueItem } from "@/lib/supabase/matches";
 import ConcludeMatchButton from "./ConcludeMatchButton";
 
 interface CounselorDashboardProps {
   firstName?: string | null;
   matchedPatients: CounselorQueueItem[];
+  pastMatches?: CounselorPastMatchItem[];
 }
 
-export default function CounselorDashboard({ firstName, matchedPatients }: CounselorDashboardProps) {
+function formatClosedAt(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "Previous match";
+  }
+
+  return `Closed ${date.toLocaleDateString()}`;
+}
+
+export default function CounselorDashboard({
+  firstName,
+  matchedPatients,
+  pastMatches = [],
+}: CounselorDashboardProps) {
   return (
     <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Header */}
@@ -65,7 +79,7 @@ export default function CounselorDashboard({ firstName, matchedPatients }: Couns
 
               <div className="flex gap-2">
                 <Link
-                  href="/chat"
+                  href={`/chat/${patient.matchId}`}
                   className="flex-1 bg-brown hover:bg-brown/80 text-white font-bold py-3 rounded-xl shadow-sm transition-all active:scale-[0.98] text-center"
                 >
                   Enter Chat
@@ -77,6 +91,27 @@ export default function CounselorDashboard({ firstName, matchedPatients }: Couns
         </div>
         )}
       </div>
+
+      {pastMatches.length > 0 && (
+        <section className="bg-white rounded-3xl p-6 shadow-sm border border-gray-50">
+          <h2 className="font-heading text-xl font-bold text-charcoal mb-4">Past Chats</h2>
+          <div className="flex flex-col gap-3">
+            {pastMatches.map((match) => (
+              <Link
+                key={match.matchId}
+                href={`/chat/${match.matchId}`}
+                className="flex items-center justify-between rounded-2xl border border-gray-100 bg-pearl/40 px-4 py-3 hover:bg-pearl/70 transition-colors"
+              >
+                <div>
+                  <p className="text-sm font-semibold text-charcoal">{match.alias}</p>
+                  <p className="text-xs font-medium text-gray-500">{formatClosedAt(match.closedAt)}</p>
+                </div>
+                <span className="text-xs font-bold text-sage">View</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
     </div>
   );

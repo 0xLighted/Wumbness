@@ -1,114 +1,176 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+
 import ChatHeader from "./ChatHeader";
 import RoomMessage from "./RoomMessage";
 import RoomInput from "./RoomInput";
+import { createClient } from "@/lib/supabase/client";
+import type { ChatMessageRecord, MatchStatus } from "@/lib/chat/types";
 
-type RoomMessageData = {
-  id: string;
-  content: string;
-  timestamp: string;
-  isOwnMessage: boolean;
-  isRead: boolean;
+type ChatRoomLayoutProps = {
+  matchId: string;
+  currentUserId: string;
+  peerName: string;
+  status: MatchStatus;
+  initialMessages: ChatMessageRecord[];
 };
 
-export default function ChatRoomLayout() {
-  // Temporary hardcoded profile data for demo
-  const [messages, setMessages] = useState<RoomMessageData[]>([
-    {
-      id: "1",
-      content: "Hi there. I'm Sarah, I've read your summary and I'm here to support you. How are you holding up right now?",
-      timestamp: "10:42 AM",
-      isOwnMessage: false,
-      isRead: true,
-    },
-    {
-      id: "2",
-      content: "Hi Sarah. honestly I'm feeling super overwhelmed with my finals coming up. I can&apos;t sleep.",
-      timestamp: "10:45 AM",
-      isOwnMessage: true,
-      isRead: true,
-    }
-  ]);
+type InsertedMessagePayload = {
+  id: string;
+  match_id: string;
+  sender_id: string;
+  content: string;
+  created_at: string;
+};
 
-  const [isTyping, setIsTyping] = useState(false);
+function toTimestamp(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function toClientMessage(row: InsertedMessagePayload): ChatMessageRecord {
+  return {
+    id: row.id,
+    matchId: row.match_id,
+    senderId: row.sender_id,
+    content: row.content,
+    createdAt: row.created_at,
+  };
+}
+
+export default function ChatRoomLayout({
+  matchId,
+  currentUserId,
+  peerName,
+  status,
+  initialMessages,
+}: ChatRoomLayoutProps) {
+  const supabase = useMemo(() => createClient(), []);
+  const [messages, setMessages] = useState<ChatMessageRecord[]>(initialMessages);
+  const [isSending, setIsSending] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const isReadOnly = status === "CLOSED";
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll logic
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isTyping]);
+  }, [messages]);
 
-  const handleSend = (text: string) => {
-    // 1. Add user message optimistic update
-    const now = new Date();
-    const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  useEffect(() => {
+    setMessages(initialMessages);
+  }, [initialMessages]);
 
-    const newUserMsg: RoomMessageData = {
-      id: Date.now().toString(),
-      content: text,
-      timestamp: timeString,
-      isOwnMessage: true,
-      isRead: false
+  useEffect(() => {
+    const channel = supabase
+      .channel(matchId)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `match_id=eq.${matchId}`,
+        },
+        (payload) => {
+          const inserted = payload.new as InsertedMessagePayload;
+          const message = toClientMessage(inserted);
+
+          setMessages((prev) => {
+            if (prev.some((item) => item.id === message.id)) {
+              return prev;
+            }
+
+            return [...prev, message];
+          });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
     };
+  }, [matchId, supabase]);
 
-    setMessages((prev) => [...prev, newUserMsg]);
-    setIsTyping(true);
+  const handleSend = async (text: string) => {
+    if (isReadOnly || isSending) {
+      return;
+    }
 
-    // 2. Mock receiving a reply via Supabase Realtime later on
-    setTimeout(() => {
-      setIsTyping(false);
-      const replyTime = new Date();
-      const replyString = replyTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setIsSending(true);
+    setErrorMessage(null);
 
-      const newReplyMsg: RoomMessageData = {
-        id: (Date.now() + 1).toString(),
-        content: "That&apos;s completely understandable. The pressure of finals is a lot to carry on your own. Have you tried any breathing exercises before bed?",
-        timestamp: replyString,
-        isOwnMessage: false,
-        isRead: true
-      };
+    const { data, error } = await supabase
+      .from("messages")
+      .insert({
+        match_id: matchId,
+        sender_id: currentUserId,
+        content: text,
+      })
+      .select("id, match_id, sender_id, content, created_at")
+      .maybeSingle<InsertedMessagePayload>();
 
-      // Mocking marking the previous messages as read
+    if (error) {
+      setErrorMessage(error.message || "Failed to send message.");
+      setIsSending(false);
+      return;
+    }
+
+    if (data) {
+      const inserted = toClientMessage(data);
       setMessages((prev) => {
-        const mapped = prev.map(m => m.isOwnMessage ? { ...m, isRead: true } : m);
-        return [...mapped, newReplyMsg];
+        if (prev.some((item) => item.id === inserted.id)) {
+          return prev;
+        }
+
+        return [...prev, inserted];
       });
-    }, 2500);
+    }
+
+    setIsSending(false);
   };
 
   return (
     <div className="flex flex-col h-full w-full max-w-2xl mx-auto bg-transparent shadow-md relative overflow-hidden">
-      <ChatHeader recipientName="Sarah Jenkins, LSW" isOnline={true} />
+      <ChatHeader recipientName={peerName} isOnline={!isReadOnly} isReadOnly={isReadOnly} />
 
-      {/* Message List */}
+      {isReadOnly && (
+        <div className="mx-4 mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-700">
+          This match is closed. You can revisit message history, but sending is disabled.
+        </div>
+      )}
+
+      {errorMessage && (
+        <div className="mx-4 mt-3 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700">
+          {errorMessage}
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 w-full">
         <div className="flex flex-col flex-1 w-full relative">
-          {messages.map((msg) => (
+          {messages.length === 0 && (
+            <p className="mx-auto rounded-full bg-white px-4 py-2 text-xs font-semibold text-gray-500 shadow-sm border border-gray-100">
+              No messages yet. Start the conversation.
+            </p>
+          )}
+
+          {messages.map((message) => (
             <RoomMessage
-              key={msg.id}
-              content={msg.content}
-              timestamp={msg.timestamp}
-              isOwnMessage={msg.isOwnMessage}
-              isRead={msg.isRead}
+              key={message.id}
+              content={message.content}
+              timestamp={toTimestamp(message.createdAt)}
+              isOwnMessage={message.senderId === currentUserId}
             />
           ))}
-
-          {/* Typing Indicator — identical to triage */}
-          {isTyping && (
-            <div className="flex w-full mb-5 justify-start animate-in fade-in ml-1">
-              <div className="px-4 py-3 bg-white border border-gray-100 rounded-3xl rounded-tl-sm flex items-center justify-center space-x-1 shadow-sm h-[44px]">
-                <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }} />
-              </div>
-            </div>
-          )}
           <div ref={messagesEndRef} />
         </div>
       </div>
 
-      <RoomInput onSend={handleSend} disabled={false} />
+      <RoomInput onSend={handleSend} disabled={isReadOnly || isSending} />
     </div>
   );
 }
