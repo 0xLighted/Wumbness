@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import ChatRoomLayout from "@/app/components/chat/ChatRoomLayout";
 import { getChatSession } from "@/lib/supabase/chat";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata = {
   title: "Chat Room",
 };

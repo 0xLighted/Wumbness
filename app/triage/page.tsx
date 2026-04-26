@@ -1,6 +1,9 @@
 import ChatLayout from "../components/triage/ChatLayout";
 import { getCurrentUser } from "@/lib/supabase/current-user";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata = {
   title: "Triage Chat",
 };

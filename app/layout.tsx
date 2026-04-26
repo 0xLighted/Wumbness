@@ -6,6 +6,9 @@ import ToastHost from "@/app/components/notifications/ToastHost";
 import AppNavigation from "./components/navigation/AppNavigation";
 import { getCurrentUser } from "@/lib/supabase/current-user";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: {
     default: "Wumbness",

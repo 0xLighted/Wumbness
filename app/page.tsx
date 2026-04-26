@@ -9,6 +9,9 @@ import {
   getPatientClosedMatches,
 } from "@/lib/supabase/matches";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function HomePage() {
   const user = await getCurrentUser();
 
