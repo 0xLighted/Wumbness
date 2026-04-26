@@ -18,6 +18,24 @@
   --color-foreground: var(--foreground);
 }
 
+@theme {
+  /* Define a custom light-bounce animation */
+  --animate-bounce-light: bounce-light 2s infinite;
+
+  /* Define the keyframes for the light bounce */
+  @keyframes bounce-light {
+    0%, 100% {
+      transform: translateY(-10%); /* Reduced from the default -25% */
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+    50% {
+      transform: translateY(0);
+      animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    }
+  }
+}
+
+
 @media (prefers-color-scheme: dark) {
   :root {
     /* For now keeping light theme per DESIGN.md emphasis on pearl white */

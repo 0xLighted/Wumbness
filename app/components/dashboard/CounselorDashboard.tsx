@@ -1,64 +1,34 @@
 import Link from "next/link";
+import type { CounselorQueueItem } from "@/lib/supabase/matches";
+import ConcludeMatchButton from "./ConcludeMatchButton";
 
 interface CounselorDashboardProps {
   firstName?: string | null;
+  matchedPatients: CounselorQueueItem[];
 }
 
-export default function CounselorDashboard({ firstName }: CounselorDashboardProps) {
-  const stats = [
-    { label: "Patients Helped", value: "24", icon: "M12 4v16m8-8H4" },
-    { label: "Hours Volunteered", value: "86", icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" },
-    { label: "Active Chats", value: "3", icon: "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" },
-  ];
-
-  const matchedPatients = [
-    {
-      id: "1",
-      alias: "Patient A",
-      severity: "Moderate",
-      unread: 2,
-      triageSummary: [
-        "Experiencing school stress from upcoming finals.",
-        "Feels overwhelmed and unable to focus.",
-        "Mentioned difficulty sleeping."
-      ]
-    },
-    {
-      id: "2",
-      alias: "Patient B",
-      severity: "Check-in",
-      unread: 0,
-      triageSummary: [
-        "Navigating recent family conflicts.",
-        "Looking for grounding exercises.",
-      ]
-    }
-  ];
-
+export default function CounselorDashboard({ firstName, matchedPatients }: CounselorDashboardProps) {
   return (
     <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-
-      {/* Welcome & Stats */}
-      <div>
-        <h1 className="font-heading text-3xl font-bold text-charcoal mb-4">
-          {firstName ? `Welcome back, ${firstName}` : "Welcome back, Counselor"}
+      {/* Header */}
+      <div className="mb-2">
+        <h1 className="font-heading text-3xl font-bold text-charcoal">
+          {firstName ? `Hello, ${firstName}` : "Hello there,"}
         </h1>
-        <div className="grid grid-cols-3 gap-3">
-          {stats.map((stat) => (
-            <div key={stat.label} className="bg-white rounded-3xl p-6 shadow-sm border border-gray-50 flex flex-col items-center justify-center text-center">
-              <span className="text-2xl font-black text-brown font-heading">{stat.value}</span>
-              <span className="text-xs font-bold text-gray-400 mt-1">{stat.label}</span>
-            </div>
-          ))}
-        </div>
+        <p className="text-gray-500 font-sub text-2xl leading-none">Your safe space awaits.</p>
       </div>
-
+      
       {/* Matched Patients Queue */}
       <div>
-        <h2 className="font-heading text-2xl font-bold text-charcoal mb-4">Your Patient Queue</h2>
+        <h2 className="font-heading text-2xl font-bold text-charcoal mb-4">Your Patient Queue ({matchedPatients.length})</h2>
+        {matchedPatients.length === 0 ? (
+          <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-50 text-gray-500 text-sm">
+            No active patient matches yet. New matches will appear here after triage completion.
+          </div>
+        ) : (
         <div className="flex flex-col gap-4">
           {matchedPatients.map((patient) => (
-            <div key={patient.id} className="bg-white rounded-3xl p-6 shadow-sm border border-gray-50 hover:shadow-md transition-shadow relative overflow-hidden">
+            <div key={patient.matchId} className="bg-white rounded-3xl p-6 shadow-sm border border-gray-50 hover:shadow-md transition-shadow relative overflow-hidden">
               {patient.unread > 0 && (
                 <div className="absolute top-0 right-0 bg-sage text-white text-xs font-bold px-3 py-1 rounded-bl-xl shadow-sm">
                   {patient.unread} new messages
@@ -68,22 +38,29 @@ export default function CounselorDashboard({ firstName }: CounselorDashboardProp
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-pearl rounded-full flex items-center justify-center font-heading font-black text-xl text-sage border border-sage/20">
-                    {patient.alias[patient.alias.length - 1]}
+                    {patient.alias.charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <h3 className="font-bold text-charcoal text-lg leading-tight">{patient.alias}</h3>
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{patient.severity}</span>
                   </div>
                 </div>
               </div>
 
               <div className="bg-pearl/50 rounded-2xl p-4 mb-4">
                 <h4 className="text-xs font-bold text-charcoal mb-2 uppercase tracking-wide">AI Triage Summary</h4>
-                <ul className="list-disc pl-5 space-y-1">
-                  {patient.triageSummary.map((bullet, idx) => (
-                    <li key={idx} className="text-sm text-gray-600 font-body">{bullet}</li>
-                  ))}
-                </ul>
+                <p className="text-sm text-gray-600 font-body leading-relaxed">{patient.summary}</p>
+                {patient.symptoms.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {patient.symptoms.map((symptom) => (
+                      <span
+                        key={`${patient.matchId}-${symptom}`}
+                        className="inline-flex items-center rounded-full bg-sage/15 px-3 py-1 text-xs font-semibold text-sage"
+                      >
+                        {symptom}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-2">
@@ -93,10 +70,12 @@ export default function CounselorDashboard({ firstName }: CounselorDashboardProp
                 >
                   Enter Chat
                 </Link>
+                <ConcludeMatchButton matchId={patient.matchId} />
               </div>
             </div>
           ))}
         </div>
+        )}
       </div>
 
     </div>

@@ -10,7 +10,10 @@ export type ToastKey =
   | "signup-success"
   | "signup-error"
   | "signout-success"
-  | "signout-error";
+  | "signout-error"
+  | "match-found"
+  | "match-concluded"
+  | "match-error";
 
 const TOAST_MESSAGES: Record<string, { type: "success" | "error"; message: string }> = {
   "login-success": {
@@ -37,9 +40,23 @@ const TOAST_MESSAGES: Record<string, { type: "success" | "error"; message: strin
     type: "error",
     message: "Sign out failed. Please try again.",
   },
+  "match-found": {
+    type: "success",
+    message: "A counselor match has been found.",
+  },
+  "match-concluded": {
+    type: "success",
+    message: "This match has been concluded.",
+  },
+  "match-error": {
+    type: "error",
+    message: "Match action failed. Please try again.",
+  },
 };
 
-export function showLoadingToast(kind: "login" | "signup" | "signout") {
+export function showLoadingToast(
+  kind: "login" | "signup" | "signout" | "match-search" | "match-conclude",
+) {
   toast.dismiss();
   if (kind === "login") {
     return toast.loading("Signing in...");
@@ -47,6 +64,14 @@ export function showLoadingToast(kind: "login" | "signup" | "signout") {
 
   if (kind === "signup") {
     return toast.loading("Creating account...");
+  }
+
+  if (kind === "match-search") {
+    return toast.loading("Searching for your best counselor match...");
+  }
+
+  if (kind === "match-conclude") {
+    return toast.loading("Concluding match...");
   }
 
   return toast.loading("Signing out...");

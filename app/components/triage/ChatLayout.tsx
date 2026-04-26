@@ -2,10 +2,12 @@
 import { useMemo, useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import ChatInput from "./ChatInput";
 import ChatMessage from "./ChatMessage";
 import MatchingScreen from "./MatchingScreen";
 import { type TriageResponse } from "@/lib/groq/triage";
+import { dismissToast, showLoadingToast } from "@/app/components/notifications/ToastHost";
 
 const INITIAL_PROMPT =
   `I'm Wumbo, and I'm here to listen and help you feel heard. It takes a lot of courage to reach out for support, and I'm here to help you get connected with someone who can.
@@ -17,6 +19,8 @@ type RenderMessage = {
   role: "ai" | "user";
   content: string;
 };
+
+type MatchPhase = "searching" | "success" | "failed";
 
 type ChatLayoutProps = {
   firstName?: string | null;
@@ -33,11 +37,15 @@ How are you feeling right now?`;
 }
 
 export default function ChatLayout({ firstName }: ChatLayoutProps) {
+  const router = useRouter();
   const initialPrompt = useMemo(() => getInitialPrompt(firstName), [firstName]);
   const [messages, setMessages] = useState<RenderMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isMatching, setIsMatching] = useState(false);
+  const [matchPhase, setMatchPhase] = useState<MatchPhase>("searching");
+  const [matchError, setMatchError] = useState<string | null>(null);
+  const [pendingMatchPayload, setPendingMatchPayload] = useState<{ symptoms: string[]; summary: string } | null>(null);
 
   // Ref for the scrollable chat history container
   const historyRef = useRef<HTMLDivElement>(null);
@@ -74,6 +82,43 @@ export default function ChatLayout({ firstName }: ChatLayoutProps) {
     const lastAssistant = [...messages].reverse().find((message) => message.role === "ai");
     return lastAssistant ? lastAssistant.content : initialPrompt;
   }, [messages, initialPrompt]);
+
+  const runMatching = async (payload: { symptoms: string[]; summary: string }) => {
+    setIsMatching(true);
+    setMatchPhase("searching");
+    setMatchError(null);
+    setPendingMatchPayload(payload);
+
+    const toastId = showLoadingToast("match-search");
+
+    const response = await fetch("/api/match", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      dismissToast(toastId);
+      const body = await response.json().catch(() => null) as { error?: string } | null;
+      throw new Error(body?.error ?? "Failed to find a counselor match");
+    }
+
+    setMatchPhase("success");
+    router.replace("/?toast=match-found");
+  };
+
+  const retryMatching = async () => {
+    if (!pendingMatchPayload) {
+      return;
+    }
+
+    try {
+      await runMatching(pendingMatchPayload);
+    } catch (matchErr) {
+      setMatchPhase("failed");
+      setMatchError(matchErr instanceof Error ? matchErr.message : "Failed to find a counselor match");
+    }
+  };
 
   const handleSend = async (text: string) => {
     const userMessage: RenderMessage = {
@@ -116,7 +161,18 @@ export default function ChatLayout({ firstName }: ChatLayoutProps) {
       ]);
 
       if (triageResponse.status === "complete") {
-        setIsMatching(true);
+        const payload = {
+          symptoms: triageResponse.symptoms,
+          summary: triageResponse.summary ?? "Triage completed",
+        };
+
+        try {
+          await runMatching(payload);
+        } catch (matchErr) {
+          setIsMatching(true);
+          setMatchPhase("failed");
+          setMatchError(matchErr instanceof Error ? matchErr.message : "Failed to find a counselor match");
+        }
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -134,7 +190,7 @@ export default function ChatLayout({ firstName }: ChatLayoutProps) {
   }, [displayedMessages]);
 
   if (isMatching) {
-    return <MatchingScreen />;
+    return <MatchingScreen phase={matchPhase} errorMessage={matchError} onRetry={retryMatching} />;
   }
 
   return (
@@ -160,14 +216,23 @@ export default function ChatLayout({ firstName }: ChatLayoutProps) {
 
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
         <div className="shrink-0 flex flex-col items-center justify-center px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4">
-          <div className="relative animate-bounce" style={{ animationDuration: "2.5s" }}>
+          <div className="relative animate-bounce-light" style={{ animationDuration: "2.5s" }}>
+            {chatMessages.length < 1 && (<Image
+              src="/wumbos/HiBubble.png"
+              alt="Chat bubble"
+              width={48}
+              height={48}
+              className="pointer-events-none absolute -top-3 -left-5 z-10 drop-shadow-lg"
+              aria-hidden="true"
+            />)}
             <Image
-              src="/WumboMascot.png"
+              src="/wumbos/WumboHappi.png"
               alt="Wumbo searching for your counselor"
               width={120}
               height={120}
               className="drop-shadow-xl"
               priority
+              key={"new wumbo"}
             />
           </div>
 

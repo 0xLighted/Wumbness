@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 const SEARCH_MESSAGES = [
   "Analyzing your responses...",
@@ -8,7 +9,19 @@ const SEARCH_MESSAGES = [
   "Almost there...",
 ];
 
-export default function MatchingScreen() {
+type MatchPhase = "searching" | "success" | "failed";
+
+type MatchingScreenProps = {
+  phase?: MatchPhase;
+  errorMessage?: string | null;
+  onRetry?: () => void;
+};
+
+export default function MatchingScreen({
+  phase = "searching",
+  errorMessage,
+  onRetry,
+}: MatchingScreenProps) {
   const [messageIndex, setMessageIndex] = useState(0);
   const [dots, setDots] = useState("");
 
@@ -52,9 +65,9 @@ export default function MatchingScreen() {
         </div>
 
         {/* Mascot — gentle floating bounce */}
-        <div className="relative animate-bounce" style={{ animationDuration: "2.5s" }}>
+        <div className="relative animate-bounce-light" style={{ animationDuration: "2.5s" }}>
           <Image
-            src="/WumboMascot.png"
+            src="/wumbos/WumboDetective.png"
             alt="Wumbo searching for your counselor"
             width={120}
             height={120}
@@ -64,18 +77,56 @@ export default function MatchingScreen() {
         </div>
       </div>
 
-      {/* Title */}
-      <h2 className="text-2xl font-heading font-bold text-charcoal text-center mb-3">
-        Finding the best counselor for you{dots}
-      </h2>
+      {phase === "searching" && (
+        <>
+          <h2 className="text-2xl font-heading font-bold text-charcoal text-center mb-3">
+            Finding the best counselor for you{dots}
+          </h2>
+          <p
+            key={messageIndex}
+            className="text-center text-gray-500 font-body text-sm max-w-xs leading-relaxed animate-in fade-in slide-in-from-bottom-1 duration-300"
+          >
+            {SEARCH_MESSAGES[messageIndex]}
+          </p>
+        </>
+      )}
 
-      {/* Cycling status message */}
-      <p
-        key={messageIndex}
-        className="text-center text-gray-500 font-body text-sm max-w-xs leading-relaxed animate-in fade-in slide-in-from-bottom-1 duration-300"
-      >
-        {SEARCH_MESSAGES[messageIndex]}
-      </p>
+      {phase === "success" && (
+        <>
+          <h2 className="text-2xl font-heading font-bold text-charcoal text-center mb-3">
+            Great news, we found a counselor for you
+          </h2>
+          <p className="text-center text-gray-500 font-body text-sm max-w-xs leading-relaxed">
+            Taking you home to continue.
+          </p>
+        </>
+      )}
+
+      {phase === "failed" && (
+        <>
+          <h2 className="text-2xl font-heading font-bold text-charcoal text-center mb-3">
+            We couldn&apos;t complete matching yet
+          </h2>
+          <p className="text-center text-gray-500 font-body text-sm max-w-xs leading-relaxed mb-4">
+            {errorMessage ?? "No counselor is available right now. Please try again shortly."}
+          </p>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onRetry}
+              className="px-4 py-2 rounded-xl bg-sage text-white font-semibold hover:bg-[#84a874] transition-colors"
+            >
+              Retry Match
+            </button>
+            <Link
+              href="/"
+              className="px-4 py-2 rounded-xl border border-gray-200 bg-white text-charcoal font-semibold hover:bg-gray-50 transition-colors"
+            >
+              Back Home
+            </Link>
+          </div>
+        </>
+      )}
     </div>
   );
 }

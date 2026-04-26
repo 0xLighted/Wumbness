@@ -1,17 +1,18 @@
 "use client";
 import Link from "next/link";
+import type { PatientMatchCard } from "@/lib/supabase/matches";
 
 interface PatientDashboardProps {
   isFirstTime?: boolean;
   firstName?: string | null;
+  matchedCounselor?: PatientMatchCard | null;
 }
 
-export default function PatientDashboard({ isFirstTime = false, firstName }: PatientDashboardProps) {
-  const counselor = {
-    name: "Sarah Jenkins, LSW",
-    bio: "Specializes in youth anxiety, school stress, and building self-esteem. Here to listen.",
-    isOnline: true,
-  };
+export default function PatientDashboard({
+  isFirstTime = false,
+  firstName,
+  matchedCounselor,
+}: PatientDashboardProps) {
 
   return (
     <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -62,13 +63,17 @@ export default function PatientDashboard({ isFirstTime = false, firstName }: Pat
                   <path d="M35 45c3 0 5-2 5-5s-2-5-5-5-5 2-5 5 2 5 5 5zm30 0c3 0 5-2 5-5s-2-5-5-5-5 2-5 5 2 5 5 5zm-15 15c-10 0-18 6-22 15h44c-4-9-12-15-22-15z" />
                 </svg>
               </div>
-              {counselor.isOnline && (
+              {matchedCounselor?.isOnline && (
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full"></div>
               )}
             </div>
             <div className="flex-1">
-              <h2 className="font-heading font-bold text-xl text-charcoal">{counselor.name}</h2>
-              <p className="text-sm font-body text-gray-500 mt-1 leading-relaxed">{counselor.bio}</p>
+              <h2 className="font-heading font-bold text-xl text-charcoal">
+                {matchedCounselor?.counselorName ?? "Assigned Counselor"}
+              </h2>
+              <p className="text-sm font-body text-gray-500 mt-1 leading-relaxed">
+                {matchedCounselor?.counselorBio ?? "Your counselor match is ready."}
+              </p>
             </div>
           </div>
 
@@ -83,18 +88,6 @@ export default function PatientDashboard({ isFirstTime = false, firstName }: Pat
           </Link>
         </div>
       )}
-
-      {/* Mood Check-in Widget */}
-      <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-50">
-        <h3 className="font-heading font-bold text-lg text-charcoal mb-4">How are you feeling today?</h3>
-        <div className="flex justify-between items-center bg-pearl p-2 rounded-2xl">
-          {["😢", "😕", "😐", "🙂", "😊"].map((emoji, idx) => (
-            <button key={idx} className="text-3xl hover:scale-125 transition-transform duration-200">
-              {emoji}
-            </button>
-          ))}
-        </div>
-      </div>
 
     </div>
   );
